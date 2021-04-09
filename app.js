@@ -1,25 +1,25 @@
+require("dotenv").config();
 const cors = require("cors");
 
 const express = require("express");
 const app = express();
 const port = 5000;
 
-const mysql = require("mysql");
-const session = require("express-session");
-// const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
+const session = require("./session");
 
+//middleware setup
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT,
     methods: ["POST", "GET", "PUT"],
     credentials: true,
   })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
+//session store setup
+const store = require("./db").sessionStore;
 app.use(
   session({
     key: "userId",
@@ -29,190 +29,26 @@ app.use(
     cookie: {
       expires: 60 * 60 * 24 * 365,
     },
+    store: store,
   })
 );
 
-const connection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "prestacaoContas",
-});
-connection.connect((err) => {
-  if (err) {
-    console.log(err);
-  }
-});
+//database connection
+// const connection = require("./db");
 
-app.post("/login", (req, res) => {
-  connection.query(
-    "SELECT * FROM usuario WHERE email=? AND senha=?",
-    [req.body.email, req.body.password],
-    (error, results, fields) => {
-      if (error) {
-        throw error;
-      }
-      if (results.length > 0) {
-        req.session.user = results[0];
-        res.json({
-          isAuthenticated: true,
-          email: req.session.user.email,
-          isAdmin: req.session.user.isAdmin,
-        });
-      } else {
-        res.status(401).json({ isAuthenticated: false });
-      }
-    }
-  );
-});
+//routes
+const auth = require("./routes/auth");
+const projeto = require("./routes/projeto");
+const usuario = require("./routes/usuario");
+const edital = require("./routes/edital");
 
-app.get("/usuario", (req, res) => {
-  connection.query("SELECT * FROM usuario", (error, results, fields) => {
-    if (error) {
-      throw error;
-    }
-    if (req.session.user) {
-      if (req.session.user.isAdmin === 1) {
-        res.json({
-          isAuthenticated: true,
-          email: req.session.user.email,
-          isAdmin: req.session.user.isAdmin,
-          results,
-        });
-      } else {
-        res.status(403).json({
-          isAuthenticated: true,
-          email: req.session.user.email,
-          isAdmin: false,
-        });
-      }
-    } else {
-      res.status(401).json({ isAuthenticated: false });
-    }
-  });
-});
+app.use("/auth", auth);
 
-app.get("/projeto", (req, res) => {
-  if (req.session.user) {
-    if (req.session.user.isAdmin === 1) {
-      if (req.query.cpfUsuario) {
-        connection.query(
-          "SELECT * FROM projeto WHERE cpfUsuario=?",
-          [req.query.cpfUsuario],
-          (error, results, fields) => {
-            if (error) {
-              throw error;
-            }
-            res.json({
-              isAuthenticated: true,
-              email: req.session.user.email,
-              isAdmin: req.session.user.isAdmin,
-              results,
-            });
-          }
-        );
-      }
-    } else {
-      res.status(403).json({
-        isAuthenticated: true,
-        email: req.session.user.email,
-        isAdmin: false,
-      });
-    }
-  } else {
-    res.status(401).json({ isAuthenticated: false });
-  }
-});
+app.use("/usuario", usuario);
 
-app.put("/projeto", (req, res) => {
-  if (req.session.user) {
-    if (req.session.user.isAdmin === 1) {
-      if (req.body.cpfUsuario && req.body.id) {
-        connection.query(
-          "UPDATE projeto SET nome=?, valorRecebidoTotal=?, valorRecebidoCapital=?, valorRecebidoCusteio=?, idEdital=? WHERE cpfUsuario=? AND id=?",
-          [
-            req.body.projetoNewInfo.nome,
-            req.body.projetoNewInfo.valorRecebidoTotal,
-            req.body.projetoNewInfo.valorRecebidoCapital,
-            req.body.projetoNewInfo.valorRecebidoCusteio,
-            req.body.projetoNewInfo.idEdital,
-            req.body.cpfUsuario,
-            req.body.id,
-          ],
-          (error, results, fields) => {
-            if (error) {
-              throw error;
-            }
-            res.status(200).send();
-          }
-        );
-      }
-    } else {
-      res.status(403).json({
-        isAuthenticated: true,
-        email: req.session.user.email,
-        isAdmin: false,
-      });
-    }
-  } else {
-    res.status(401).json({ isAuthenticated: false });
-  }
-});
+app.use("/projeto", projeto);
 
-app.get("/edital", (req, res) => {
-  connection.query("SELECT * FROM edital", (error, results, fields) => {
-    if (error) {
-      throw error;
-    }
-    if (req.session.user) {
-      if (req.session.user.isAdmin === 1) {
-        res.json({
-          isAuthenticated: true,
-          email: req.session.user.email,
-          isAdmin: req.session.user.isAdmin,
-          results,
-        });
-      } else {
-        res.status(403).json({
-          isAuthenticated: true,
-          email: req.session.user.email,
-          isAdmin: false,
-        });
-      }
-    } else {
-      res.status(401).json({ isAuthenticated: false });
-    }
-  });
-});
-
-app.get("/logout", (req, res) => {
-  req.session.destroy();
-  res.clearCookie("userId", { path: "/" });
-  res.status(200).send();
-});
-
-//403=logado mas nao admin
-//401=nao logado
-
-app.get("/login", (req, res) => {
-  if (req.session.user) {
-    if (req.session.user.isAdmin === 1) {
-      res.json({
-        isAuthenticated: true,
-        email: req.session.user.email,
-        isAdmin: req.session.user.isAdmin,
-      });
-    } else {
-      res.status(403).json({
-        isAuthenticated: true,
-        email: req.session.user.email,
-        isAdmin: false,
-      });
-    }
-  } else {
-    res.status(401).json({ isAuthenticated: false });
-  }
-});
+app.use("/edital", edital);
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
