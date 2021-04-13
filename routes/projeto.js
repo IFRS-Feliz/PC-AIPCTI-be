@@ -28,6 +28,33 @@ router
       );
     }
   })
+  .post((req, res) => {
+    const cpfUsuario = req.body.cpfUsuario;
+    const projetos = req.body.projetos;
+    let query =
+      "INSERT INTO projeto (cpfUsuario, nome, valorRecebidoTotal, valorRecebidoCapital, valorRecebidoCusteio, idEdital) VALUES";
+    projetos.forEach((projeto) => {
+      query += `('${cpfUsuario}', '${projeto.nome}', ${projeto.valorRecebidoTotal}, ${projeto.valorRecebidoCapital}, ${projeto.valorRecebidoCusteio}, ${projeto.idEdital}),`;
+    });
+    query = query.substring(0, query.length - 1) + ";";
+
+    connection.query(
+      query,
+      [req.body.cpf, req.body.nome, req.body.email, 123, req.body.isAdmin],
+      (error, results, fields) => {
+        if (error) {
+          throw error;
+        }
+
+        res.json({
+          isAuthenticated: true,
+          email: req.session.user.email,
+          isAdmin: req.session.user.isAdmin,
+          results,
+        });
+      }
+    );
+  })
   .put((req, res) => {
     if (req.body.cpfUsuario && req.body.id) {
       connection.query(
