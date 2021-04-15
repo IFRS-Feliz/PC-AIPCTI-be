@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const connection = require("../db").connection;
+const connection = require("../db");
 
 //setup authorization middleware
 const authorization = require("../middleware").auth;
@@ -13,10 +13,9 @@ router.route("/").get((req, res) => {
       throw error;
     }
     res.json({
-      isAuthenticated: true,
-      email: req.session.user.email,
-      isAdmin: req.session.user.isAdmin,
-      results,
+      user: req.user,
+      token: req.token,
+      results: results,
     });
   });
 });

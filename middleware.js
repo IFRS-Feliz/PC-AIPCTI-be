@@ -1,19 +1,44 @@
+const jwt = require("jsonwebtoken");
+
 function auth(adminOnly) {
   return (req, res, next) => {
-    if (req.session.user) {
-      if (adminOnly && req.session.user.isAdmin !== 1) {
-        res.status(403).json({
-          isAuthenticated: true,
-          email: req.session.user.email,
-          isAdmin: false,
-        });
-        return;
+    const authHeader = req.headers["authorization"]; //Bearer token
+    let token = authHeader && authHeader.split(" ")[1]; //token
+
+    const refreshToken = req.cookies.refreshToken;
+
+    jwt.verify(token, process.env.SECRET, (error, user) => {
+      if (error) {
+        if (refreshToken) {
+          //futuramente verificar se refreshToken esta no db
+          jwt.verify(
+            refreshToken,
+            process.env.REFRESH_SECRET,
+            (errorR, userR) => {
+              if (errorR) return res.sendStatus(401);
+
+              const newUser = {
+                name: userR.name,
+                email: userR.email,
+                isAdmin: userR.isAdmin,
+              };
+
+              token = jwt.sign(newUser, process.env.SECRET, {
+                expiresIn: "10s",
+              });
+
+              user = userR;
+            }
+          );
+        } else return res.sendStatus(401);
       }
-    } else {
-      res.status(401).json({ isAuthenticated: false });
-      return;
-    }
-    next();
+
+      if (user.isAdmin === 0 && adminOnly) return res.sendStatus(403);
+
+      req.token = token;
+      req.user = user;
+      next();
+    });
   };
 }
 

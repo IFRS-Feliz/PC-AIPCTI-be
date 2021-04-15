@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const connection = require("../db").connection;
+const connection = require("../db");
 
 //setup authorization middleware
 const authorization = require("../middleware").auth;
@@ -19,10 +19,9 @@ router
             throw error;
           }
           res.json({
-            isAuthenticated: true,
-            email: req.session.user.email,
-            isAdmin: req.session.user.isAdmin,
-            results,
+            user: req.user,
+            token: req.token,
+            results: results,
           });
         }
       );
@@ -46,12 +45,7 @@ router
           throw error;
         }
 
-        res.json({
-          isAuthenticated: true,
-          email: req.session.user.email,
-          isAdmin: req.session.user.isAdmin,
-          results,
-        });
+        res.status(200).json({ user: req.user, token: req.token });
       }
     );
   })
@@ -72,7 +66,8 @@ router
           if (error) {
             throw error;
           }
-          res.status(200).send();
+
+          res.status(200).json({ user: req.user, token: req.token });
         }
       );
     }

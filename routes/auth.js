@@ -1,55 +1,50 @@
 const express = require("express");
 const router = express.Router();
 
-const connection = require("../db").connection;
+const jwt = require("jsonwebtoken");
+const connection = require("../db");
 
-router
-  .route("/login")
-  .get((req, res) => {
-    if (req.session.user) {
-      if (req.session.user.isAdmin === 1) {
-        res.json({
-          isAuthenticated: true,
-          email: req.session.user.email,
-          isAdmin: req.session.user.isAdmin,
+router.route("/login").post((req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  if (!email || !password) return res.sendStatus(401);
+
+  connection.query(
+    "SELECT * FROM usuario WHERE email=? AND senha=?",
+    [email, password],
+    (error, results, fields) => {
+      if (error) {
+        throw error;
+      }
+      if (results.length > 0) {
+        const user = {
+          name: results[0].nome,
+          email: results[0].email,
+          isAdmin: results[0].isAdmin,
+        };
+
+        const token = jwt.sign(user, process.env.SECRET, { expiresIn: "10s" });
+        const refreshToken = jwt.sign(user, process.env.REFRESH_SECRET);
+        //futuramente adicionar refreshToken no db
+        res.cookie("refreshToken", refreshToken, {
+          httpOnly: true,
+          path: "/",
+          maxAge: 60 * 60 * 24 * 365 * 1000 * 10,
         });
+
+        res.json({ token: token });
       } else {
-        res.status(403).json({
-          isAuthenticated: true,
-          email: req.session.user.email,
-          isAdmin: false,
-        });
+        res.sendStatus(401);
       }
-    } else {
-      res.status(401).json({ isAuthenticated: false });
     }
-  })
-  .post((req, res) => {
-    connection.query(
-      "SELECT * FROM usuario WHERE email=? AND senha=?",
-      [req.body.email, req.body.password],
-      (error, results, fields) => {
-        if (error) {
-          throw error;
-        }
-        if (results.length > 0) {
-          req.session.user = results[0];
-          res.json({
-            isAuthenticated: true,
-            email: req.session.user.email,
-            isAdmin: req.session.user.isAdmin,
-          });
-        } else {
-          res.status(401).json({ isAuthenticated: false });
-        }
-      }
-    );
-  });
+  );
+});
 
 router.route("/logout").get((req, res) => {
-  req.session.destroy();
-  res.clearCookie("userId", { path: "/" });
-  res.status(200).send();
+  //futuramente remover refreshToken do db
+  res.clearCookie("refreshToken");
+  res.sendStatus(200);
 });
 
 module.exports = router;
