@@ -9,19 +9,44 @@ const { body, validationResult } = require("express-validator");
 const authorization = require("../middleware").auth;
 router.use(authorization(true));
 
-router.route("/").get((req, res) => {
-  connection.query("SELECT * FROM usuario", (error, results, fields) => {
-    if (error) {
-      return res.sendStatus(500);
+router
+  .route("/")
+  .get((req, res) => {
+    connection.query("SELECT * FROM usuario", (error, results, fields) => {
+      if (error) {
+        return res.sendStatus(500);
+      }
+
+      res.json({
+        user: req.user,
+        token: req.token,
+        results: results,
+      });
+    });
+  })
+  .delete(body("cpf").isLength({ min: 11, max: 11 }), (req, res) => {
+    if (!validationResult(req).isEmpty()) {
+      return res.sendStatus(400);
     }
 
-    res.json({
-      user: req.user,
-      token: req.token,
-      results: results,
-    });
+    connection.query(
+      "DELETE FROM projeto WHERE cpfUsuario = ?",
+      [req.body.cpf],
+      (error) => {
+        if (error) return res.sendStatus(500);
+
+        connection.query(
+          "DELETE FROM usuario WHERE cpf = ?",
+          [req.body.cpf],
+          (error) => {
+            if (error) return res.sendStatus(500);
+
+            res.status(200).send({ token: req.token, user: req.user });
+          }
+        );
+      }
+    );
   });
-});
 
 router.use(
   body("email").isEmail(),

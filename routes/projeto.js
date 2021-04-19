@@ -107,6 +107,21 @@ router
         }
       );
     }
-  );
+  )
+  .delete(body("id").isNumeric(), (req, res) => {
+    if (!validationResult(req).isEmpty()) {
+      return res.sendStatus(400);
+    }
+
+    connection.query(
+      "DELETE FROM projeto WHERE id = ?",
+      [req.body.id],
+      (error) => {
+        if (error) return res.sendStatus(500);
+
+        res.status(200).json({ token: req.token, user: req.user });
+      }
+    );
+  });
 
 module.exports = router;
