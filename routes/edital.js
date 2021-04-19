@@ -10,7 +10,7 @@ router.use(authorization(true));
 router.route("/").get((req, res) => {
   connection.query("SELECT * FROM edital", (error, results, fields) => {
     if (error) {
-      throw error;
+      return res.sendStatus(500);
     }
     res.json({
       user: req.user,
