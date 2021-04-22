@@ -11,26 +11,42 @@ router.use(authorization(true));
 
 router
   .route("/")
-  .get(query("cpfUsuario").isLength({ min: 11, max: 11 }), (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
+  .get(
+    query("cpfUsuario").isLength({ min: 11, max: 11 }).isInt().optional(),
+    (req, res) => {
+      if (!validationResult(req).isEmpty()) {
+        return res.sendStatus(400);
+      }
 
-    connection.query(
-      "SELECT * FROM projeto WHERE cpfUsuario=?",
-      [req.query.cpfUsuario],
-      (error, results, fields) => {
-        if (error) {
-          return res.sendStatus(500);
-        }
-        res.json({
-          user: req.user,
-          token: req.token,
-          results: results,
+      if (req.query.cpfUsuario) {
+        connection.query(
+          "SELECT * FROM projeto WHERE cpfUsuario=?",
+          [req.query.cpfUsuario],
+          (error, results) => {
+            if (error) {
+              return res.sendStatus(500);
+            }
+            return res.json({
+              user: req.user,
+              token: req.token,
+              results: results,
+            });
+          }
+        );
+      } else {
+        connection.query("SELECT * FROM projeto", (error, results) => {
+          if (error) {
+            return res.sendStatus(500);
+          }
+          res.json({
+            user: req.user,
+            token: req.token,
+            results: results,
+          });
         });
       }
-    );
-  })
+    }
+  )
   .post(
     body("cpfUsuario").isLength({ min: 11, max: 11 }),
     body("projetos").isArray(),
