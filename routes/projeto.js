@@ -48,7 +48,8 @@ router
     }
   )
   .post(
-    body("cpfUsuario").isLength({ min: 11, max: 11 }),
+    // body("cpfUsuario").isLength({ min: 11, max: 11 }), //cpf agora vem como propriedade do projeto para mais flexibilidade
+    body("projetos.*.cpfUsuario").isLength({ min: 11, max: 11 }),
     body("projetos").isArray(),
     body("projetos.*.nome").exists(),
     body("projetos.*.valorRecebidoTotal").isNumeric(),
@@ -60,14 +61,13 @@ router
         return res.sendStatus(400);
       }
 
-      const cpfUsuario = req.body.cpfUsuario;
       const projetos = req.body.projetos;
 
       let query =
         "INSERT INTO projeto (cpfUsuario, nome, valorRecebidoTotal, valorRecebidoCapital, valorRecebidoCusteio, idEdital) VALUES";
 
       projetos.forEach((projeto) => {
-        query += `('${cpfUsuario}', '${projeto.nome}', ${projeto.valorRecebidoTotal}, ${projeto.valorRecebidoCapital}, ${projeto.valorRecebidoCusteio}, ${projeto.idEdital}),`;
+        query += `('${projeto.cpfUsuario}', '${projeto.nome}', ${projeto.valorRecebidoTotal}, ${projeto.valorRecebidoCapital}, ${projeto.valorRecebidoCusteio}, ${projeto.idEdital}),`;
       });
 
       query = query.substring(0, query.length - 1) + ";";

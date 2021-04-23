@@ -42,6 +42,40 @@ router
         });
       }
     );
-  });
+  })
+  .post(
+    body("nome").exists(),
+    body("dataInicio").isDate(),
+    body("dataFim").isDate(),
+    body("valorIPCT").isInt(),
+    body("ano").isLength({ min: 4, max: 4 }).isInt(),
+    (req, res) => {
+      if (!validationResult(req).isEmpty()) {
+        return res.sendStatus(400);
+      }
+
+      connection.query(
+        "INSERT INTO edital (nome, dataInicio, dataFim, valorIPCT, ano) VALUES(?,?,?,?,?)",
+        [
+          req.body.nome,
+          req.body.dataInicio,
+          req.body.dataFim,
+          req.body.valorIPCT,
+          req.body.ano,
+        ],
+        (error, results) => {
+          if (error) {
+            return res.sendStatus(500);
+          }
+
+          res.json({
+            user: req.user,
+            token: req.token,
+            results: results,
+          });
+        }
+      );
+    }
+  );
 
 module.exports = router;
