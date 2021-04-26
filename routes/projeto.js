@@ -13,6 +13,7 @@ router
   .route("/")
   .get(
     query("cpfUsuario").isLength({ min: 11, max: 11 }).isInt().optional(),
+    query("idEdital").isInt().optional(),
     (req, res) => {
       if (!validationResult(req).isEmpty()) {
         return res.sendStatus(400);
@@ -22,6 +23,21 @@ router
         connection.query(
           "SELECT * FROM projeto WHERE cpfUsuario=?",
           [req.query.cpfUsuario],
+          (error, results) => {
+            if (error) {
+              return res.sendStatus(500);
+            }
+            return res.json({
+              user: req.user,
+              token: req.token,
+              results: results,
+            });
+          }
+        );
+      } else if (req.query.idEdital) {
+        connection.query(
+          "SELECT * FROM projeto WHERE idEdital=?",
+          [req.query.idEdital],
           (error, results) => {
             if (error) {
               return res.sendStatus(500);
@@ -94,21 +110,22 @@ router
     body("projetos.*.valorRecebidoCusteio").isNumeric(),
     body("projetos.*.valorRecebidoCapital").isNumeric(),
     body("projetos.*.idEdital").isNumeric(),
+    body("projetos.*.cpfUsuario").isLength({ min: 11, max: 11 }),
     (req, res) => {
       if (!validationResult(req).isEmpty()) {
         return res.sendStatus(400);
       }
 
       let query =
-        "INSERT INTO projeto (id, nome, valorRecebidoTotal, valorRecebidoCapital, valorRecebidoCusteio, idEdital) VALUES";
+        "INSERT INTO projeto (id, nome, valorRecebidoTotal, valorRecebidoCapital, valorRecebidoCusteio, idEdital, cpfUsuario) VALUES";
 
       req.body.projetos.forEach((projeto) => {
-        query += `(${projeto.id}, "${projeto.nome}", ${projeto.valorRecebidoTotal}, ${projeto.valorRecebidoCapital}, ${projeto.valorRecebidoCusteio}, ${projeto.idEdital}),`;
+        query += `(${projeto.id}, "${projeto.nome}", ${projeto.valorRecebidoTotal}, ${projeto.valorRecebidoCapital}, ${projeto.valorRecebidoCusteio}, ${projeto.idEdital}, "${projeto.cpfUsuario}"),`;
       });
       query = query.substring(0, query.length - 1);
 
       query +=
-        " ON DUPLICATE KEY UPDATE nome=VALUES(nome), valorRecebidoTotal=VALUES(valorRecebidoTotal), valorRecebidoCapital=VALUES(valorRecebidoCapital), valorRecebidoCusteio=VALUES(valorRecebidoCusteio), idEdital=VALUES(idEdital);";
+        " ON DUPLICATE KEY UPDATE nome=VALUES(nome), valorRecebidoTotal=VALUES(valorRecebidoTotal), valorRecebidoCapital=VALUES(valorRecebidoCapital), valorRecebidoCusteio=VALUES(valorRecebidoCusteio), idEdital=VALUES(idEdital), cpfUsuario=VALUES(cpfUsuario);";
 
       connection.query(query, (error, results, fields) => {
         if (error) {
