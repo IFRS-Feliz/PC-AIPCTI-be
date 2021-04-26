@@ -96,7 +96,9 @@ router
             return res.sendStatus(500);
           }
 
-          res.status(200).json({ user: req.user, token: req.token });
+          res
+            .status(200)
+            .json({ user: req.user, token: req.token, results: results });
         }
       );
     }
