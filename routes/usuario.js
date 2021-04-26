@@ -2,6 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 const connection = require("../db");
+const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+
+const transporter = require("../mail");
 
 const { body, validationResult, query } = require("express-validator");
 
@@ -96,6 +100,13 @@ router
                   .send({ msg: "Outro usuário já possui esse email" });
               }
 
+              const randomPassword = crypto
+                .randomBytes(2)
+                .toString("hex")
+                .toUpperCase(); //gerar uma senha aleatoria com 8 caracteres
+              // console.log(randomPassword);
+              const hash = bcrypt.hashSync(randomPassword, 10);
+
               //inserir o usuario
               connection.query(
                 "INSERT INTO usuario (cpf, nome, email, senha, isAdmin) VALUES (?, ?, ?, ?, ?)",
@@ -103,13 +114,23 @@ router
                   req.body.cpf,
                   req.body.nome,
                   req.body.email,
-                  123,
+                  hash,
                   0, //nunca será admin
                 ],
                 (error) => {
                   if (error) return res.sendStatus(500);
 
-                  res.status(200).json({ user: req.user, token: req.token });
+                  transporter
+                    .sendMail({
+                      html: `<p>Senha: ${randomPassword}</p>`,
+                      to: req.body.email,
+                    })
+                    .then(
+                      res.status(200).json({ user: req.user, token: req.token })
+                    )
+                    .catch((e) => {
+                      console.log(e);
+                    });
                 }
               );
             }
