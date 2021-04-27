@@ -68,7 +68,8 @@ router
     body("nome").exists(),
     body("dataInicio").isDate(),
     body("dataFim").isDate(),
-    body("valorIPCT").isInt(),
+    body("dataLimitePrestacao").isDate(),
+    body("valorAIPCTI").isInt(),
     body("ano").isLength({ min: 4, max: 4 }).isInt(),
     (req, res) => {
       if (!validationResult(req).isEmpty()) {
@@ -76,13 +77,14 @@ router
       }
 
       connection.query(
-        "INSERT INTO edital (nome, dataInicio, dataFim, valorIPCT, ano) VALUES(?,?,?,?,?)",
+        "INSERT INTO edital (nome, dataInicio, dataFim, valorAIPCTI, ano, dataLimitePrestacao) VALUES(?,?,?,?,?,?)",
         [
           req.body.nome,
           req.body.dataInicio,
           req.body.dataFim,
-          req.body.valorIPCT,
+          req.body.valorAIPCTI,
           req.body.ano,
+          req.body.dataLimitePrestacao,
         ],
         (error, results) => {
           if (error) {
@@ -103,28 +105,31 @@ router
     body("nome").exists(),
     body("dataInicio").isDate(),
     body("dataFim").isDate(),
-    body("valorIPCT").isInt(),
+    body("dataLimitePrestacao").isDate(),
+    body("valorAIPCTI").isInt(),
     body("ano").isLength({ min: 4, max: 4 }).isInt(),
     (req, res) => {
       if (!validationResult(req).isEmpty()) {
         return res.sendStatus(400);
       }
-
       //atualizar o edital
       connection.query(
-        "UPDATE edital SET nome = ?, dataInicio = ?, dataFim = ?, valorIPCT = ?, ano = ? WHERE id = ? ",
+        "UPDATE edital SET nome = ?, dataInicio = ?, dataFim = ?, valorAIPCTI = ?, ano = ?, dataLimitePrestacao = ? WHERE id = ? ",
         [
           req.body.nome,
           req.body.dataInicio,
           req.body.dataFim,
-          req.body.valorIPCT,
+          req.body.valorAIPCTI,
           req.body.ano,
+          req.body.dataLimitePrestacao,
           req.body.id,
         ],
-        (error) => {
+        (error, results) => {
           if (error) return res.sendStatus(500);
 
-          res.status(200).json({ user: req.user, token: req.token });
+          res
+            .status(200)
+            .json({ user: req.user, token: req.token, results: results });
         }
       );
     }
