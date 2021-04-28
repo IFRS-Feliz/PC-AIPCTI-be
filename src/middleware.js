@@ -19,6 +19,7 @@ function auth(adminOnly) {
 
               const newUser = {
                 name: userR.name,
+                cpf: userR.cpf,
                 email: userR.email,
                 isAdmin: userR.isAdmin,
               };

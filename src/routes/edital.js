@@ -19,7 +19,7 @@ router
     body("dataInicio").isDate(),
     body("dataFim").isDate(),
     body("dataLimitePrestacao").isDate(),
-    body("valorAIPCTI").isInt(),
+    body("valorAIPCTI").isNumeric(),
     body("ano").isLength({ min: 4, max: 4 }).isInt(),
     post
   )
@@ -29,7 +29,7 @@ router
     body("dataInicio").isDate(),
     body("dataFim").isDate(),
     body("dataLimitePrestacao").isDate(),
-    body("valorAIPCTI").isInt(),
+    body("valorAIPCTI").isNumeric(),
     body("ano").isLength({ min: 4, max: 4 }).isInt(),
     put
   );

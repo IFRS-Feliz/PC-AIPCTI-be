@@ -1,19 +1,31 @@
 require("dotenv").config();
-const mysql = require("mysql");
+const { Sequelize, DataTypes } = require("sequelize");
+
+const User = require("../models/User");
+const Edital = require("../models/Edital");
+const Projeto = require("../models/Projeto");
 
 const options = {
   host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
+  dialect: "mysql",
+  logging: false,
 };
 
-const connection = mysql.createConnection(options);
+const sequelize = new Sequelize(
+  process.env.DB_DATABASE,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
+  options
+);
 
-connection.connect((err) => {
-  if (err) {
-    console.log(err);
-  }
-});
+//iniciar os models
+User(sequelize, DataTypes);
+Edital(sequelize, DataTypes);
+Projeto(sequelize, DataTypes);
 
-module.exports = connection;
+//setar associacoes entre as tabelas
+sequelize.models.User.associate(sequelize.models);
+sequelize.models.Edital.associate(sequelize.models);
+sequelize.models.Projeto.associate(sequelize.models);
+
+module.exports = sequelize;

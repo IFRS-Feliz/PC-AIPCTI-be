@@ -1,54 +1,42 @@
 const jwt = require("jsonwebtoken");
-const connection = require("../services/db");
 const bcrypt = require("bcrypt");
 
+const User = require("../services/db").models.User;
+
 module.exports = {
-  login: (req, res) => {
+  login: async (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
 
     if (!email || !password) return res.sendStatus(401);
 
-    connection.query(
-      "SELECT * FROM usuario WHERE email=?",
-      [email, password],
-      (error, results, fields) => {
-        if (error) {
-          console.log(error);
-        }
+    const users = await User.findAll({ where: { email: email }, raw: true });
 
-        try {
-          const isPasswordCorrect = bcrypt.compareSync(
-            password,
-            results[0].senha
-          );
-          if (results.length > 0 && isPasswordCorrect) {
-            const user = {
-              name: results[0].nome,
-              email: results[0].email,
-              isAdmin: results[0].isAdmin,
-            };
+    if (!users || users.length !== 1) return res.sendStatus(401);
 
-            const token = jwt.sign(user, process.env.SECRET, {
-              expiresIn: "10s",
-            });
-            const refreshToken = jwt.sign(user, process.env.REFRESH_SECRET);
-            //futuramente adicionar refreshToken no db
-            res.cookie("refreshToken", refreshToken, {
-              httpOnly: true,
-              path: "/",
-              maxAge: 60 * 60 * 24 * 365 * 1000 * 10,
-            });
+    const isPasswordCorrect = await bcrypt.compare(password, users[0].senha);
 
-            res.json({ token: token });
-          } else {
-            res.sendStatus(401);
-          }
-        } catch (error) {
-          return res.sendStatus(500);
-        }
-      }
-    );
+    if (!isPasswordCorrect) return res.sendStatus(401);
+
+    const user = {
+      cpf: users[0].cpf,
+      name: users[0].nome,
+      email: users[0].email,
+      isAdmin: users[0].isAdmin,
+    };
+
+    const token = jwt.sign(user, process.env.SECRET, {
+      expiresIn: "10s",
+    });
+    const refreshToken = jwt.sign(user, process.env.REFRESH_SECRET);
+    //futuramente adicionar refreshToken no db
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365 * 1000 * 10,
+    });
+
+    res.json({ user: user, token: token });
   },
   logout: (req, res) => {
     //futuramente remover refreshToken do db

@@ -1,9 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const connection = require("../services/db");
-
-const { query, body, validationResult } = require("express-validator");
+const { query, body } = require("express-validator");
 
 //controller methods
 const { get, post, put, del } = require("../controllers/ProjetoController");
