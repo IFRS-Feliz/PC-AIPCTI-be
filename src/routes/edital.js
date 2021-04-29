@@ -8,11 +8,14 @@ const { get, post, put, del } = require("../controllers/EditalController");
 
 //setup authorization middleware
 const authorization = require("../middleware").auth;
-router.use(authorization(true));
+router.use(authorization(false)); //nao é necessario ser admin para realizar get
+
+router.route("/").get(query("id").isInt().optional(), get);
+
+router.use(authorization(true)); //é necessario ser admin para outros metodos
 
 router
   .route("/")
-  .get(query("id").isInt().optional(), get)
   .delete(body("id").isInt(), del)
   .post(
     body("nome").exists(),

@@ -1,9 +1,5 @@
 require("dotenv").config();
-const { Sequelize, DataTypes } = require("sequelize");
-
-const User = require("../models/User");
-const Edital = require("../models/Edital");
-const Projeto = require("../models/Projeto");
+const { Sequelize } = require("sequelize");
 
 const options = {
   host: process.env.DB_HOST,
@@ -18,14 +14,23 @@ const sequelize = new Sequelize(
   options
 );
 
-//iniciar os models
-User(sequelize, DataTypes);
-Edital(sequelize, DataTypes);
-Projeto(sequelize, DataTypes);
+// pegar as funcoes de definicao dos models
+const modelDefiners = [
+  require("../models/User"),
+  require("../models/Edital"),
+  require("../models/Projeto"),
+];
 
-//setar associacoes entre as tabelas
-sequelize.models.User.associate(sequelize.models);
-sequelize.models.Edital.associate(sequelize.models);
-sequelize.models.Projeto.associate(sequelize.models);
+// definir cada model
+for (const modelDefiner of modelDefiners) {
+  modelDefiner(sequelize);
+}
+
+// definir associacoes entre os models de acordo com suas funcoes associate
+Object.keys(sequelize.models).forEach((modelName) => {
+  if (sequelize.models[modelName].associate) {
+    sequelize.models[modelName].associate(sequelize.models);
+  }
+});
 
 module.exports = sequelize;

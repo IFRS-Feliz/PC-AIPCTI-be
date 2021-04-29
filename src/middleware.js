@@ -25,7 +25,7 @@ function auth(adminOnly) {
               };
 
               token = jwt.sign(newUser, process.env.SECRET, {
-                expiresIn: "10s",
+                expiresIn: "10m",
               });
 
               user = userR;

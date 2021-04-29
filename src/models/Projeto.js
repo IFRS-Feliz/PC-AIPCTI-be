@@ -1,4 +1,6 @@
-module.exports = (sequelize, DataTypes) => {
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
   const Projeto = sequelize.define(
     "Projeto",
     {
@@ -28,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
         //foreign
       },
     },
-    { sequelize: sequelize, timestamps: false, tableName: "projeto" }
+    { timestamps: false, tableName: "projeto" }
   );
 
   Projeto.associate = (models) => {

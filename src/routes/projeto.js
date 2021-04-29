@@ -8,7 +8,7 @@ const { get, post, put, del } = require("../controllers/ProjetoController");
 
 //setup authorization middleware
 const authorization = require("../middleware").auth;
-router.use(authorization(true));
+router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
 router
   .route("/")
@@ -16,7 +16,12 @@ router
     query("cpfUsuario").isLength({ min: 11, max: 11 }).isInt().optional(),
     query("idEdital").isInt().optional(),
     get
-  )
+  );
+
+router.use(authorization(true)); //é necessario ser admin para outros metodos
+
+router
+  .route("/")
   .post(
     // body("cpfUsuario").isLength({ min: 11, max: 11 }), //cpf agora vem como propriedade do projeto para mais flexibilidade
     body("projetos.*.cpfUsuario").isLength({ min: 11, max: 11 }),

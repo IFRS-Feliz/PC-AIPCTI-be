@@ -1,4 +1,6 @@
-module.exports = (sequelize, DataTypes) => {
+const { DataTypes } = require("sequelize");
+
+module.exports = (sequelize) => {
   const Edital = sequelize.define(
     "Edital",
     {
@@ -26,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATEONLY,
       },
     },
-    { sequelize: sequelize, timestamps: false, tableName: "edital" }
+    { timestamps: false, tableName: "edital" }
   );
 
   Edital.associate = (models) => {

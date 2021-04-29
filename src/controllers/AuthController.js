@@ -26,7 +26,7 @@ module.exports = {
     };
 
     const token = jwt.sign(user, process.env.SECRET, {
-      expiresIn: "10s",
+      expiresIn: "10m",
     });
     const refreshToken = jwt.sign(user, process.env.REFRESH_SECRET);
     //futuramente adicionar refreshToken no db
