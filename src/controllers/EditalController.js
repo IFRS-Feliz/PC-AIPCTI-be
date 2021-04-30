@@ -3,27 +3,27 @@ const Edital = require("../services/db").models.Edital;
 
 module.exports = {
   get: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
-    if (req.query.id) {
-      const edital = await Edital.findByPk(req.query.id, { raw: true });
-
-      return res.json({
-        user: req.user,
-        token: req.token,
-        results: [edital],
-      });
-    }
-
-    //caso um id de edital nao tenha sido especificado
-    const editais = await Edital.findAll({ raw: true });
+    const usuarios = res.results;
 
     res.json({
       user: req.user,
       token: req.token,
-      results: editais,
+      results: usuarios,
+      previous: res.previousPage,
+      next: res.nextPage,
+    });
+  },
+  getSingle: async (req, res) => {
+    if (!validationResult(req).isEmpty()) {
+      return res.sendStatus(400);
+    }
+
+    const editais = await Edital.findByPk(req.params.id, { raw: true });
+
+    return res.json({
+      user: req.user,
+      token: req.token,
+      results: [editais],
     });
   },
   post: async (req, res) => {

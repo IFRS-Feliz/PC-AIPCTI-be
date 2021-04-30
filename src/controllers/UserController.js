@@ -7,35 +7,31 @@ const { Op } = require("sequelize");
 
 module.exports = {
   get: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
-    if (req.query.cpf) {
-      const usuarios = await User.findByPk(req.query.cpf, { raw: true });
-
-      return res.json({
-        user: req.user,
-        token: req.token,
-        results: [usuarios],
-      });
-    }
-
-    //caso um cpf nao tenha sido especificado
-    const usuarios = await User.findAll({
-      raw: true,
-      where: { isAdmin: false },
-    });
+    const usuarios = res.results;
 
     res.json({
       user: req.user,
       token: req.token,
       results: usuarios,
+      previous: res.previousPage,
+      next: res.nextPage,
+    });
+  },
+  getSingle: async (req, res) => {
+    if (!validationResult(req).isEmpty()) {
+      return res.sendStatus(400);
+    }
+
+    const usuarios = await User.findByPk(req.params.cpf, { raw: true });
+
+    return res.json({
+      user: req.user,
+      token: req.token,
+      results: [usuarios],
     });
   },
   post: async (req, res) => {
     if (!validationResult(req).isEmpty()) {
-      console.log("falhou");
       return res.sendStatus(400);
     }
 

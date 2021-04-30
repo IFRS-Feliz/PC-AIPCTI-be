@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const { validationResult } = require("express-validator");
 
 function auth(adminOnly) {
   return (req, res, next) => {
@@ -43,4 +44,56 @@ function auth(adminOnly) {
   };
 }
 
-module.exports = { auth };
+function paginatedResults(model, where = {}) {
+  return async (req, res, next) => {
+    if (!validationResult(req).isEmpty()) {
+      return res.sendStatus(400);
+    }
+
+    const limit = Number(req.query.limit);
+    const page = Number(req.query.page);
+    const offset = (page - 1) * limit;
+
+    //adicionar wheres do Projeto caso seja o caso
+    if (req.query.cpfUsuario) where.cpfUsuario = req.query.cpfUsuario;
+    if (req.query.idEdital) where.idEdital = req.query.idEdital;
+
+    //fech do db
+    let results = [];
+    if (!limit || !page) {
+      results = await model.findAll({
+        raw: true,
+        where: where,
+      });
+    } else {
+      results = await model.findAll({
+        raw: true,
+        where: where,
+        limit: limit,
+        offset: offset,
+      });
+    }
+
+    res.results = results;
+
+    if (offset > 0) {
+      //setar informacoes sobre a pagina anterior
+      res.previousPage = { page: page - 1, limit: limit };
+    }
+
+    //setar informacoes sobre as paginas seguintes
+    let countUsers = await model.findAndCountAll({ raw: true, where: where });
+    countUsers = countUsers.count;
+    if (page * limit < countUsers) {
+      res.nextPage = {
+        page: page + 1,
+        limit: limit,
+        nextPagesCount: Math.ceil(countUsers / limit - page),
+      };
+    }
+
+    next();
+  };
+}
+
+module.exports = { auth, paginatedResults };

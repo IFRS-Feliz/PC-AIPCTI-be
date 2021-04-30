@@ -1,16 +1,33 @@
 const express = require("express");
 const router = express.Router();
 
-const { body, query } = require("express-validator");
+const { body, query, param } = require("express-validator");
 
 //controller methods
-const { get, post, put, del } = require("../controllers/EditalController");
+const {
+  get,
+  post,
+  put,
+  del,
+  getSingle,
+} = require("../controllers/EditalController");
+const Edital = require("../services/db").models.Edital;
 
 //setup authorization middleware
 const authorization = require("../middleware").auth;
+const paginatedResults = require("../middleware").paginatedResults;
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
-router.route("/").get(query("id").isInt().optional(), get);
+router
+  .route("/")
+  .get(
+    query("limit").isInt().optional(),
+    query("page").isInt().optional(),
+    paginatedResults(Edital),
+    get
+  );
+
+router.route("/:id").get(param("id").isInt(), getSingle);
 
 router.use(authorization(true)); //é necessario ser admin para outros metodos
 

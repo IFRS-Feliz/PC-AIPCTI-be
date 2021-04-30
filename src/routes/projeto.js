@@ -1,13 +1,21 @@
 const express = require("express");
 const router = express.Router();
 
-const { query, body } = require("express-validator");
+const { query, body, param } = require("express-validator");
 
 //controller methods
-const { get, post, put, del } = require("../controllers/ProjetoController");
+const {
+  get,
+  post,
+  put,
+  del,
+  getSingle,
+} = require("../controllers/ProjetoController");
+const Projeto = require("../services/db").models.Projeto;
 
 //setup authorization middleware
 const authorization = require("../middleware").auth;
+const paginatedResults = require("../middleware").paginatedResults;
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
 router
@@ -15,8 +23,13 @@ router
   .get(
     query("cpfUsuario").isLength({ min: 11, max: 11 }).isInt().optional(),
     query("idEdital").isInt().optional(),
+    query("limit").isInt().optional(),
+    query("page").isInt().optional(),
+    paginatedResults(Projeto),
     get
   );
+
+router.route("/:id").get(param("id").isInt(), getSingle);
 
 router.use(authorization(true)); //é necessario ser admin para outros metodos
 

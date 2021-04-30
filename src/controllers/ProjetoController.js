@@ -3,21 +3,30 @@ const Projeto = require("../services/db").models.Projeto;
 
 module.exports = {
   get: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
-    let where = {};
-    if (req.query.cpfUsuario) where.cpfUsuario = req.query.cpfUsuario;
-    if (req.query.idEdital) where.idEdital = req.query.idEdital;
-
-    const projetos = await Projeto.findAll({ where: where, raw: true });
+    const projetos = res.results;
 
     res.json({
       user: req.user,
       token: req.token,
       results: projetos,
+      previous: res.previousPage,
+      next: res.nextPage,
     });
+  },
+  getSingle: async (req, res) => {
+    if (!validationResult(req).isEmpty()) {
+      return res.sendStatus(400);
+    }
+
+    const projetos = await Projeto.findByPk(req.params.id, { raw: true });
+
+    return res.json({
+      user: req.user,
+      token: req.token,
+      results: [projetos],
+    });
+
+    return;
   },
   post: async (req, res) => {
     if (!validationResult(req).isEmpty()) {
@@ -34,8 +43,6 @@ module.exports = {
     if (!validationResult(req).isEmpty()) {
       return res.sendStatus(400);
     }
-
-    console.log(req.body.projetos);
 
     const results = await Projeto.bulkCreate(req.body.projetos, {
       updateOnDuplicate: [
