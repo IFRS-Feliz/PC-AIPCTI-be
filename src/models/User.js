@@ -30,7 +30,6 @@ module.exports = (sequelize) => {
     User.hasMany(models.Projeto, {
       foreignKey: "cpfUsuario",
       onDelete: "CASCADE",
-      onUpdate: "CASCADE",
     });
   };
 

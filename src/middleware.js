@@ -54,11 +54,13 @@ function paginatedResults(model, where = {}) {
     const page = Number(req.query.page);
     const offset = (page - 1) * limit;
 
-    //adicionar wheres do Projeto caso seja o caso
+    //adicionar wheres do Projeto se for o caso
     if (req.query.cpfUsuario) where.cpfUsuario = req.query.cpfUsuario;
+    else delete where.cpfUsuario; //deletando porque, por algum motivo, haviam valores no where mesmo quando nenhum parametro é passado
     if (req.query.idEdital) where.idEdital = req.query.idEdital;
+    else delete where.idEdital;
 
-    //fech do db
+    //fetch do db
     let results = [];
     if (!limit || !page) {
       results = await model.findAll({
@@ -76,10 +78,8 @@ function paginatedResults(model, where = {}) {
 
     res.results = results;
 
-    if (offset > 0) {
-      //setar informacoes sobre a pagina anterior
-      res.previousPage = { page: page - 1, limit: limit };
-    }
+    //setar informacoes sobre a pagina anterior
+    if (offset > 0) res.previousPage = { page: page - 1, limit: limit };
 
     //setar informacoes sobre as paginas seguintes
     let countUsers = await model.findAndCountAll({ raw: true, where: where });

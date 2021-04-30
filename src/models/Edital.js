@@ -35,7 +35,6 @@ module.exports = (sequelize) => {
     Edital.hasMany(models.Projeto, {
       foreignKey: "idEdital",
       onDelete: "CASCADE",
-      onUpdate: "CASCADE",
     });
   };
 
