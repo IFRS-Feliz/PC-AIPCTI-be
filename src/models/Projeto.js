@@ -36,6 +36,7 @@ module.exports = (sequelize) => {
   Projeto.associate = (models) => {
     Projeto.belongsTo(models.User, { foreignKey: "cpfUsuario" });
     Projeto.belongsTo(models.Edital, { foreignKey: "idEdital" });
+    Projeto.hasMany(models.Item, { foreignKey: "idProjeto" });
   };
 
   return Projeto;

@@ -25,8 +25,6 @@ module.exports = {
       token: req.token,
       results: [projetos],
     });
-
-    return;
   },
   post: async (req, res) => {
     if (!validationResult(req).isEmpty()) {

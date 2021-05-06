@@ -60,12 +60,23 @@ function paginatedResults(model, where = {}) {
     if (req.query.idEdital) where.idEdital = req.query.idEdital;
     else delete where.idEdital;
 
+    //adicionar wheres do Item se for o caso
+    if (req.query.idProjeto) where.idProjeto = req.query.idProjeto;
+    else delete where.idProjeto;
+
+    //adicionar wheres do Orcamento se for o caso
+    if (req.query.idItem) where.idItem = req.query.idItem;
+    else delete where.idItem;
+
     //fetch do db
     let results = [];
     if (!limit || !page) {
       results = await model.findAll({
         raw: true,
         where: where,
+        attributes: {
+          exclude: ["senha"],
+        },
       });
     } else {
       results = await model.findAll({
@@ -73,6 +84,9 @@ function paginatedResults(model, where = {}) {
         where: where,
         limit: limit,
         offset: offset,
+        attributes: {
+          exclude: ["senha"],
+        },
       });
     }
 

@@ -2,7 +2,8 @@ const { validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const transporter = require("../services/mail");
-const User = require("../services/db").models.User;
+const sequelize = require("../services/db");
+const User = sequelize.models.User;
 const { Op } = require("sequelize");
 
 module.exports = {
@@ -22,7 +23,12 @@ module.exports = {
       return res.sendStatus(400);
     }
 
-    const usuarios = await User.findByPk(req.params.cpf, { raw: true });
+    const usuarios = await User.findByPk(req.params.cpf, {
+      raw: true,
+      attributes: {
+        exclude: ["senha"],
+      },
+    });
 
     return res.json({
       user: req.user,
@@ -56,12 +62,12 @@ module.exports = {
 
     if (!results) return res.sendStatus(500);
 
-    const email = await transporter.sendMail({
-      html: `<p>Senha: ${randomPassword}</p>`,
-      to: req.body.email,
-    });
+    // const email = await transporter.sendMail({
+    //   html: `<p>Senha: ${randomPassword}</p>`,
+    //   to: req.body.email,
+    // });
 
-    if (!email) res.sendStatus(500);
+    // if (!email) res.sendStatus(500);
 
     res.status(200).json({ user: req.user, token: req.token });
   },

@@ -19,6 +19,8 @@ const modelDefiners = [
   require("../models/User"),
   require("../models/Edital"),
   require("../models/Projeto"),
+  require("../models/Item"),
+  require("../models/Orcamento"),
 ];
 
 // definir cada model
