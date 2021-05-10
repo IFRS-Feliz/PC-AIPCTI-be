@@ -26,4 +26,47 @@ module.exports = {
       results: [orcamentos],
     });
   },
+  post: async (req, res) => {
+    if (!validationResult(req).isEmpty()) {
+      return res.sendStatus(400);
+    }
+
+    const results = await Orcamento.bulkCreate(req.body.orcamentos);
+
+    res.json({ user: req.user, token: req.token, results: results });
+  },
+  put: async (req, res) => {
+    if (!validationResult(req).isEmpty()) {
+      return res.sendStatus(400);
+    }
+
+    const results = await Orcamento.bulkCreate(req.body.orcamentos, {
+      updateOnDuplicate: [
+        "idItem",
+        // "pathAnexo",
+        "dataOrcamento",
+        "nomeMaterialServico",
+        "marca",
+        "modelo",
+        "cnpjFavorecido",
+        "frete",
+        "quantidade",
+        "valorUnitario",
+        "valorTotal",
+      ],
+    });
+
+    res.json({ user: req.user, token: req.token, results: results });
+  },
+  del: async (req, res) => {
+    if (!validationResult(req).isEmpty()) {
+      return res.sendStatus(400);
+    }
+
+    const ids = req.body.orcamentos.map((orcamento) => orcamento.id);
+
+    const results = await Orcamento.destroy({ where: { id: ids } });
+
+    res.json({ user: req.user, token: req.token, results: results });
+  },
 };

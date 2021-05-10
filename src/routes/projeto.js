@@ -49,7 +49,7 @@ router
   .put(
     //.*. quer dizer em qualquer posicao da lista projetos
     body("projetos").isArray().isLength({ min: 1 }),
-    body("projetos.*.id").isNumeric(),
+    body("projetos.*.id").isInt(),
     body("projetos.*.nome").exists(),
     body("projetos.*.valorRecebidoTotal").isNumeric(),
     body("projetos.*.valorRecebidoCusteio").isNumeric(),
