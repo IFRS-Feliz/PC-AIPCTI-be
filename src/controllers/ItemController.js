@@ -18,12 +18,12 @@ module.exports = {
     if (!validationResult(req).isEmpty()) {
       return res.sendStatus(400);
     }
-    const itens = await Item.findByPk(req.params.id, { raw: true });
+    const item = await Item.findByPk(req.params.id, { raw: true });
 
     return res.json({
       user: req.user,
       token: req.token,
-      results: [itens],
+      results: [item],
     });
   },
   post: async (req, res) => {
@@ -31,7 +31,7 @@ module.exports = {
       return res.sendStatus(400);
     }
 
-    const results = await Item.bulkCreate(req.body.itens);
+    const results = await Item.bulkCreate(req.body.itens, { raw: true });
 
     res.json({ user: req.user, token: req.token, results: results });
   },
@@ -43,7 +43,6 @@ module.exports = {
     const results = await Item.bulkCreate(req.body.itens, {
       updateOnDuplicate: [
         "idProjeto",
-        // "pathAnexo",
         "descricao",
         "despesa",
         "tipo",
@@ -57,13 +56,13 @@ module.exports = {
         "quantidade",
         "valorUnitario",
         "valorTotal",
-        // "tipoDocumentoFiscal",
+        "tipoDocumentoFiscal",
+        "isCompradoComCpfCoordenador",
+        "isNaturezaSingular",
       ],
     });
 
-    res
-      .status(200)
-      .json({ user: req.user, token: req.token, results: results });
+    res.json({ user: req.user, token: req.token, results: results });
   },
   del: async (req, res) => {
     if (!validationResult(req).isEmpty()) {
@@ -72,8 +71,14 @@ module.exports = {
 
     const ids = req.body.itens.map((item) => item.id);
 
-    const results = await Item.destroy({ where: { id: ids } });
+    const itens = await Item.findAll({
+      where: { id: ids },
+    });
 
-    res.json({ user: req.user, token: req.token, results: results });
+    itens.forEach((item) => {
+      item.destroy();
+    });
+
+    res.json({ user: req.user, token: req.token, results: itens.length });
   },
 };

@@ -1,5 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
+const { v4: uuidv4 } = require("uuid");
+const path = require("path");
 
 function auth(adminOnly) {
   return (req, res, next) => {
@@ -110,4 +112,15 @@ function paginatedResults(model, where = {}) {
   };
 }
 
-module.exports = { auth, paginatedResults };
+function getAnexoFileName(file) {
+  let ext = path.extname(file.originalname);
+  if (ext === ".jpeg") ext = ".jpg";
+  const uuid = uuidv4();
+  return { uuid, ext };
+}
+
+module.exports = {
+  auth,
+  paginatedResults,
+  getAnexoFileName,
+};
