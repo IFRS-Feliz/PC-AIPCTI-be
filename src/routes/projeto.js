@@ -10,6 +10,7 @@ const {
   put,
   del,
   getSingle,
+  getRelatorio,
 } = require("../controllers/ProjetoController");
 const Projeto = require("../services/db").models.Projeto;
 
@@ -30,6 +31,8 @@ router
   );
 
 router.route("/:id").get(param("id").isInt(), getSingle);
+
+router.route("/:id/relatorio").get(param("id").isInt(), getRelatorio);
 
 router.use(authorization(true)); //é necessario ser admin para outros metodos
 
