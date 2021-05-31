@@ -13,6 +13,11 @@ const {
   put,
   del,
 } = require("../controllers/OrcamentosController");
+const {
+  getFile,
+  postFile,
+  deleteFile,
+} = require("../controllers/FileController");
 const Orcamento = require("../services/db").models.Orcamento;
 
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
@@ -33,13 +38,12 @@ router
   .route("/")
   .delete(
     body("orcamentos").isArray(),
-    body("orcamentos.*.id").isNumeric(),
+    body("orcamentos.*.id").isNumeric(), //mudar para isInt
     del
   )
   .post(
     body("orcamentos").isArray(),
     body("orcamentos.*.idItem").isInt(),
-    // body("pathAnexo").isAlphanumeric(),
     body("orcamentos.*.dataOrcamento").isDate(),
     body("orcamentos.*.nomeMaterialServico").isString(),
     body("orcamentos.*.marca").isString(),
@@ -55,7 +59,6 @@ router
     body("orcamentos").isArray().isLength({ min: 1 }),
     body("orcamentos.*.id").isInt(),
     body("orcamentos.*.idItem").isInt(),
-    // body("pathAnexo").isAlphanumeric(),
     body("orcamentos.*.dataOrcamento").isDate(),
     body("orcamentos.*.nomeMaterialServico").isString(),
     body("orcamentos.*.marca").isString(),
@@ -67,5 +70,15 @@ router
     body("orcamentos.*.valorTotal").isNumeric(),
     put
   );
+
+//file
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
+
+router.route("/:id/file").get(getFile(Orcamento));
+
+router.route("/:id/file").post(upload.single("file"), postFile(Orcamento));
+
+router.route("/:id/file").delete(deleteFile(Orcamento));
 
 module.exports = router;

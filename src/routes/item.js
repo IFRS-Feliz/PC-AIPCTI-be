@@ -14,6 +14,11 @@ const {
   put,
   del,
 } = require("../controllers/ItemController");
+const {
+  getFile,
+  postFile,
+  deleteFile,
+} = require("../controllers/FileController");
 const Item = require("../services/db").models.Item;
 
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
@@ -34,7 +39,6 @@ router
   .route("/")
   .post(
     body("itens").isArray(),
-    // body("pathAnexo").isAlphanumeric(),
     body("itens.*.idProjeto").isInt(),
     body("itens.*.descricao").isString(),
     body("itens.*.despesa").isString(),
@@ -49,13 +53,13 @@ router
     body("itens.*.quantidade").isInt(),
     body("itens.*.valorUnitario").isNumeric(),
     body("itens.*.valorTotal").isNumeric(),
-    // body("tipoDocumentoFiscal").isString(),
+    body("itens.*.tipoDocumentoFiscal").isString(),
+    body("itens.*.isCompradoComCpfCoordenador").isBoolean(),
     post
   )
   .put(
     body("itens").isArray(),
     body("itens.*.id").isInt(),
-    // body("pathAnexo").isAlphanumeric(),
     body("itens.*.idProjeto").isInt(),
     body("itens.*.descricao").isString(),
     body("itens.*.despesa").isString(),
@@ -70,9 +74,20 @@ router
     body("itens.*.quantidade").isInt(),
     body("itens.*.valorUnitario").isNumeric(),
     body("itens.*.valorTotal").isNumeric(),
-    // body("tipoDocumentoFiscal").isString(),
+    body("itens.*.tipoDocumentoFiscal").isString(),
+    body("itens.*.isCompradoComCpfCoordenador").isBoolean(),
     put
   )
   .delete((body("itens").isArray(), body("itens.*.id").isNumeric(), del));
+
+//files
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
+
+router.route("/:id/file").get(getFile(Item));
+
+router.route("/:id/file").post(upload.single("file"), postFile(Item));
+
+router.route("/:id/file").delete(deleteFile(Item));
 
 module.exports = router;

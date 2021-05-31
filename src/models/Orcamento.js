@@ -1,4 +1,5 @@
 const { DataTypes } = require("sequelize");
+const fs = require("fs").promises;
 
 module.exports = (sequelize) => {
   const Orcamento = sequelize.define(
@@ -43,12 +44,29 @@ module.exports = (sequelize) => {
       valorTotal: {
         type: DataTypes.DECIMAL(15, 2),
       },
+      isOrcadoComCpfCoordenador: {
+        type: DataTypes.BOOLEAN,
+      },
     },
-    { timestamps: false, tableName: "orcamento" }
+    {
+      timestamps: false,
+      tableName: "orcamento",
+      hooks: {
+        beforeBulkDestroy: (options) => {
+          options.individualHooks = true;
+          return options;
+        },
+        afterDestroy: (orcamento, _) => {
+          if (orcamento.pathAnexo) {
+            fs.unlink("uploads/" + orcamento.pathAnexo);
+          }
+        },
+      },
+    }
   );
 
   Orcamento.associate = (models) => {
-    Orcamento.belongsTo(models.Item, { foreignKey: "idItem" });
+    Orcamento.belongsTo(models.Item, { foreignKey: "idItem", hooks: true });
   };
 
   return Orcamento;

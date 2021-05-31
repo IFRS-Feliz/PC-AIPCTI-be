@@ -18,12 +18,12 @@ module.exports = {
     if (!validationResult(req).isEmpty()) {
       return res.sendStatus(400);
     }
-    const orcamentos = await Orcamento.findByPk(req.params.id, { raw: true });
+    const orcamento = await Orcamento.findByPk(req.params.id, { raw: true });
 
     return res.json({
       user: req.user,
       token: req.token,
-      results: [orcamentos],
+      results: [orcamento],
     });
   },
   post: async (req, res) => {
@@ -43,7 +43,6 @@ module.exports = {
     const results = await Orcamento.bulkCreate(req.body.orcamentos, {
       updateOnDuplicate: [
         "idItem",
-        // "pathAnexo",
         "dataOrcamento",
         "nomeMaterialServico",
         "marca",
@@ -53,6 +52,7 @@ module.exports = {
         "quantidade",
         "valorUnitario",
         "valorTotal",
+        "isOrcadoComCpfCoordenador",
       ],
     });
 

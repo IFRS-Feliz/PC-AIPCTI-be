@@ -16,7 +16,7 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
+app.use(express.json({ limit: process.env.BODY_LIMIT }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 

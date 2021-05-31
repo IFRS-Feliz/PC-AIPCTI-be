@@ -1,4 +1,5 @@
 const { DataTypes } = require("sequelize");
+const fs = require("fs").promises;
 
 module.exports = (sequelize) => {
   const Item = sequelize.define(
@@ -12,6 +13,9 @@ module.exports = (sequelize) => {
       idProjeto: {
         type: DataTypes.INTEGER,
         //foreign
+      },
+      pathAnexo: {
+        type: DataTypes.STRING(500),
       },
       descricao: {
         type: DataTypes.STRING(300),
@@ -55,14 +59,35 @@ module.exports = (sequelize) => {
       tipoDocumentoFiscal: {
         type: DataTypes.STRING(50),
       },
+      isCompradoComCpfCoordenador: {
+        type: DataTypes.BOOLEAN,
+      },
+      isNaturezaSingular: {
+        type: DataTypes.BOOLEAN,
+      },
     },
-    { timestamps: false, tableName: "item" }
+    {
+      timestamps: false,
+      tableName: "item",
+      hooks: {
+        beforeBulkDestroy: (options) => {
+          options.individualHooks = true;
+          return options;
+        },
+        afterDestroy: (item, _) => {
+          if (item.pathAnexo) {
+            fs.unlink("uploads/" + item.pathAnexo);
+          }
+        },
+      },
+    }
   );
 
   Item.associate = (models) => {
     Item.hasMany(models.Orcamento, {
       foreignKey: "idItem",
       onDelete: "CASCADE",
+      hooks: true,
     });
     Item.belongsTo(models.Projeto, { foreignKey: "idProjeto" });
   };
