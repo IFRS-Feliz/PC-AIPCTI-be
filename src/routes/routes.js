@@ -8,6 +8,7 @@ const edital = require("./edital");
 const search = require("./search");
 const item = require("./item");
 const orcamento = require("./orcamento");
+const justificativa = require("./justificativa");
 
 router.use("/auth", auth);
 
@@ -22,5 +23,7 @@ router.use("/search", search);
 router.use("/item", item);
 
 router.use("/orcamento", orcamento);
+
+router.use("/justificativa", justificativa);
 
 module.exports = router;

@@ -66,7 +66,7 @@ function paginatedResults(model, where = {}) {
     if (req.query.idProjeto) where.idProjeto = req.query.idProjeto;
     else delete where.idProjeto;
 
-    //adicionar wheres do Orcamento se for o caso
+    //adicionar wheres do Orcamento e Justificativa se for o caso
     if (req.query.idItem) where.idItem = req.query.idItem;
     else delete where.idItem;
 

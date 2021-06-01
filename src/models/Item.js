@@ -89,6 +89,11 @@ module.exports = (sequelize) => {
       onDelete: "CASCADE",
       hooks: true,
     });
+    Item.hasOne(models.Justificativa, {
+      foreignKey: "idItem",
+      onDelete: "CASCADE",
+      hooks: true,
+    });
     Item.belongsTo(models.Projeto, { foreignKey: "idProjeto" });
   };
 

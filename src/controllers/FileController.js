@@ -22,6 +22,7 @@ module.exports = {
           res.send({
             user: req.user,
             token: req.token,
+            id: req.params.id,
             file: file,
             fileMime: mime.getType(fileName),
           });
