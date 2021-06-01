@@ -3,6 +3,7 @@ const sequelize = require("../services/db");
 const Projeto = sequelize.models.Projeto;
 const Item = sequelize.models.Item;
 const Orcamento = sequelize.models.Orcamento;
+const Justificativa = sequelize.models.Justificativa;
 const AdmZip = require("adm-zip");
 
 const fs = require("fs");
@@ -314,9 +315,10 @@ module.exports = {
     };
 
     itens.forEach((value, index) => {
-      let anexoItem = `${process.cwd()}/uploads/${value.pathAnexo}`;
-
-      zip.addLocalFile(anexoItem, "Relatorio/pdfs");
+      if (value.pathAnexo) {
+        let anexoItem = `${process.cwd()}/uploads/${value.pathAnexo}`;
+        zip.addLocalFile(anexoItem, "Relatorio/pdfs");
+      }
 
       tabelaGeral.table.body.push([
         {
@@ -476,11 +478,14 @@ module.exports = {
             ],
             [
               { text: "Anexo documento fiscal", style: "tituloTable" },
-              {
-                text: value.pathAnexo,
-                style: ["celulaTable", "link"],
-                link: `pdfs/${value.pathAnexo}`,
-              },
+
+              value.pathAnexo
+                ? {
+                    text: value.pathAnexo,
+                    style: ["celulaTable", "link"],
+                    link: `pdfs/${value.pathAnexo}`,
+                  }
+                : { text: "Nenhum anexo", style: "celulaTable" },
             ],
           ],
         },
@@ -534,9 +539,10 @@ module.exports = {
       });
 
       orcamentos.forEach((value, index) => {
-        let anexoOrcamento = `${process.cwd()}/uploads/${value.pathAnexo}`;
-
-        zip.addLocalFile(anexoOrcamento, "Relatorio/pdfs");
+        if (value.pathAnexo) {
+          let anexoOrcamento = `${process.cwd()}/uploads/${value.pathAnexo}`;
+          zip.addLocalFile(anexoOrcamento, "Relatorio/pdfs");
+        }
 
         let data = value.dataOrcamento.split("-");
         tabelaOrcamento.ul.push(
@@ -599,11 +605,13 @@ module.exports = {
                   ],
                   [
                     { text: "Anexo do orçamento", style: "tituloTable" },
-                    {
-                      text: value.pathAnexo,
-                      style: ["celulaTable", "link"],
-                      link: `pdfs/${value.pathAnexo}`,
-                    },
+                    value.pathAnexo
+                      ? {
+                          text: value.pathAnexo,
+                          style: ["celulaTable", "link"],
+                          link: `pdfs/${value.pathAnexo}`,
+                        }
+                      : { text: "Nenhum anexo", style: "celulaTable" },
                   ],
                 ],
               },
@@ -644,9 +652,59 @@ module.exports = {
         );
       });
 
+      const justificativa = await Justificativa.findAll({
+        raw: true,
+        where: { idItem: value.id },
+      });
+      console.log(justificativa);
+
+      tabelaJustificativa = {
+        style: "lista",
+        type: "none",
+        ul: [],
+      };
+
+      justificativa.forEach((value) => {
+        if (value.pathAnexo) {
+          let anexoJustificativa = `${process.cwd()}/uploads/${
+            value.pathAnexo
+          }`;
+          zip.addLocalFile(anexoJustificativa, "Relatorio/pdfs");
+        }
+
+        tabelaJustificativa.ul.push([
+          {
+            text: `Justificativa:`,
+            fontSize: 12,
+            margin: [0, 0, 0, 5],
+          },
+          {
+            table: {
+              widths: [200, 298.5],
+              body: [
+                [
+                  { text: "Anexo da justificativa", style: "tituloTable" },
+                  value.pathAnexo
+                    ? {
+                        text: value.pathAnexo,
+                        style: ["celulaTable", "link"],
+                        link: `pdfs/${value.pathAnexo}`,
+                      }
+                    : { text: "Nenhum anexo", style: "celulaTable" },
+                ],
+              ],
+            },
+            layout: {
+              vLineWidth: () => 0.2,
+              hLineWidth: () => 0.2,
+            },
+          },
+        ]);
+      });
+
       // Quebras de página
       if (itens.length - 1 !== index) {
-        tabelaOrcamento.pageBreak = "after";
+        tabelaJustificativa.pageBreak = "after";
       }
 
       // Partes do PDF final
@@ -657,7 +715,9 @@ module.exports = {
         table,
         separacao,
         resumoDocumentoFiscal,
-        tabelaOrcamento
+        orcamentos.length > 0 ? tabelaOrcamento : "",
+        justificativa.length === 0 ? quebrarPagina : "",
+        justificativa.length > 0 ? tabelaJustificativa : ""
       );
     }
 
@@ -684,7 +744,7 @@ Muito obrigado pela sua colaboração. :)
 `;
     zip.addFile("Relatorio/README.txt", read, "", "r");
 
-    console.log(itens);
+    //console.log(itens);
 
     //let anexoItem = `${process.cwd()}/uploads/${value.pathAnexo}`;
 
