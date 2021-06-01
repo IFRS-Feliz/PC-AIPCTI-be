@@ -314,6 +314,10 @@ module.exports = {
     };
 
     itens.forEach((value, index) => {
+      let anexoItem = `${process.cwd()}/uploads/${value.pathAnexo}`;
+
+      zip.addLocalFile(anexoItem, "Relatorio/pdfs");
+
       tabelaGeral.table.body.push([
         {
           text: index + 1,
@@ -472,7 +476,11 @@ module.exports = {
             ],
             [
               { text: "Anexo documento fiscal", style: "tituloTable" },
-              { text: "Não tenho ainda no banco", style: "celulaTable" },
+              {
+                text: value.pathAnexo,
+                style: ["celulaTable", "link"],
+                link: `pdfs/${value.pathAnexo}`,
+              },
             ],
           ],
         },
@@ -526,6 +534,10 @@ module.exports = {
       });
 
       orcamentos.forEach((value, index) => {
+        let anexoOrcamento = `${process.cwd()}/uploads/${value.pathAnexo}`;
+
+        zip.addLocalFile(anexoOrcamento, "Relatorio/pdfs");
+
         let data = value.dataOrcamento.split("-");
         tabelaOrcamento.ul.push(
           [
@@ -587,7 +599,11 @@ module.exports = {
                   ],
                   [
                     { text: "Anexo do orçamento", style: "tituloTable" },
-                    { text: "vejo isso depois", style: "celulaTable" },
+                    {
+                      text: value.pathAnexo,
+                      style: ["celulaTable", "link"],
+                      link: `pdfs/${value.pathAnexo}`,
+                    },
                   ],
                 ],
               },
@@ -668,9 +684,11 @@ Muito obrigado pela sua colaboração. :)
 `;
     zip.addFile("Relatorio/README.txt", read, "", "r");
 
-    let pdfs = `${process.cwd()}/src/assets/teste.pdf`;
+    console.log(itens);
 
-    zip.addLocalFile(pdfs, "Relatorio/pdfs");
+    //let anexoItem = `${process.cwd()}/uploads/${value.pathAnexo}`;
+
+    //zip.addLocalFile(pdfs, "Relatorio/anexoItem");
 
     res.setHeader(
       "Content-Disposition",
