@@ -65,6 +65,9 @@ module.exports = (sequelize) => {
       isNaturezaSingular: {
         type: DataTypes.BOOLEAN,
       },
+      posicao: {
+        type: DataTypes.INTEGER,
+      },
     },
     {
       timestamps: false,

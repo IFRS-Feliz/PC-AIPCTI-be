@@ -5,13 +5,7 @@ const Justificativa = sequelize.models.Justificativa;
 module.exports = {
   get: async (req, res) => {
     const justificativas = res.results;
-    console.log({
-      user: req.user,
-      token: req.token,
-      results: justificativas,
-      previous: res.previousPage,
-      next: res.nextPage,
-    });
+
     res.json({
       user: req.user,
       token: req.token,
