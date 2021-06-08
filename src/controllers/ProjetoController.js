@@ -4,6 +4,7 @@ const Projeto = sequelize.models.Projeto;
 const Item = sequelize.models.Item;
 const Orcamento = sequelize.models.Orcamento;
 const Justificativa = sequelize.models.Justificativa;
+const Edital = sequelize.models.Edital;
 const AdmZip = require("adm-zip");
 
 const fs = require("fs");
@@ -120,6 +121,27 @@ module.exports = {
       raw: true,
       where: { id: req.params.id },
     });
+
+    const edital = await Edital.findAll({
+      raw: true,
+      where: { id: projeto[0].idEdital },
+    });
+
+    // verificar se a data limite é maior do que data do documento fiscal/orçamento
+    function verificarDataLimite(dataEdital, dataInicial) {
+      let data = dataEdital.split("-");
+      if (data[2] >= dataInicial[2]) {
+        if (data[1] >= dataInicial[1]) {
+          if (data[0] >= dataInicial[0]) {
+            return true;
+          }
+          return false;
+        }
+        return false;
+      }
+      return false;
+    }
+
     const itens = await Item.findAll({
       raw: true,
       where: { idProjeto: req.params.id },
@@ -320,6 +342,35 @@ module.exports = {
         zip.addLocalFile(anexoItem, "Relatorio/pdfs");
       }
 
+      // switch dos tipos dos itens para inserir na tabela
+      switch (value.tipo) {
+        case "materialPermanente":
+          value.tipo = "Material permanente";
+          break;
+        case "materialConsumo":
+          value.tipo = "Material de consumo";
+          break;
+        case "servicoPessoaFisica":
+          value.tipo = "Serviços de terceiros (pessoa física)";
+          break;
+        case "servicoPessoaJuridica":
+          value.tipo = "Serviços de terceiros (pessoa jurídica)";
+          break;
+        case "hospedagem":
+          value.tipo = "Hospedagem";
+          break;
+        case "passagem":
+          value.tipo = "Passagem";
+          break;
+        case "alimentacao":
+          value.tipo = "Alimentação";
+          break;
+        default:
+          break;
+      }
+
+      let data = value.dataCompraContratacao.split("-");
+
       tabelaGeral.table.body.push([
         {
           text: index + 1,
@@ -344,7 +395,7 @@ module.exports = {
           style: "celulaTabelaGeral",
         },
         {
-          text: value.dataCompraContratacao,
+          text: `${data[2]}/${data[1]}/${data[0]}`,
           style: "celulaTabelaGeral",
         },
         {
@@ -382,6 +433,31 @@ module.exports = {
     // Pagina de cada item
     for (let index = 0; index < itens.length; index++) {
       const value = itens[index];
+
+      const orcamentos = await Orcamento.findAll({
+        raw: true,
+        where: { idItem: value.id },
+      });
+
+      // Pega o menor dos orçamentos de determinado item
+      let verificarMenorOrcamento = Number(value.valorTotal);
+      // contador de empresas diferentes
+      let empresas = [];
+
+      // Verificar o menor orcamento do item e a quantidade de empresas diferentes
+      orcamentos.forEach((value) => {
+        // verefica a quantidade de empresas que foram orçadas
+        if (!empresas.includes(value.cnpjFavorecido)) {
+          empresas.push(value.cnpjFavorecido);
+        }
+
+        // verifica o valor de cada orcamento com o valor do item
+        if (verificarMenorOrcamento > Number(value.valorTotal)) {
+          verificarMenorOrcamento = Number(value.valorTotal);
+        }
+      });
+
+      console.log(empresas.length);
 
       let idItem = {
         text: ".",
@@ -437,7 +513,10 @@ module.exports = {
             ],
             [
               { text: "Tipo", style: "tituloTable" },
-              { text: value.tipo, style: "celulaTable" },
+              {
+                text: `${value.tipo} - (${value.despesa})`,
+                style: "celulaTable",
+              },
             ],
             [
               { text: "Data", style: "tituloTable" },
@@ -498,29 +577,46 @@ module.exports = {
       // resumo documento fiscal
       let resumoDocumentoFiscal = {
         table: {
-          widths: [265, 20],
+          widths: [265, 200],
           body: [
             [
               {
                 text: "Documento fiscal realizado anterior a data limite:",
                 fontSize: 10,
               },
-              { text: "s/n", fontSize: 10 },
+              verificarDataLimite(edital[0].dataLimitePrestacao, data)
+                ? { text: "sim", fontSize: 10 }
+                : { text: "não", fontSize: 10 },
             ],
             [
               {
                 text: "Documento fiscal realizado com o cpf do pesquisador:",
                 fontSize: 10,
               },
-              { text: "s/n", fontSize: 10 },
+              value.isCompradoComCpfCoordenador === 1
+                ? { text: `sim`, fontSize: 10 }
+                : { text: `não`, fontSize: 10 },
             ],
-            [
-              {
-                text: "Documento fiscal referente ao orçamento de menor preço:",
-                fontSize: 10,
-              },
-              { text: "s/n", fontSize: 10 },
-            ],
+            orcamentos.length > 0
+              ? [
+                  {
+                    text: "Documento fiscal referente ao orçamento de menor preço:",
+                    fontSize: 10,
+                  },
+                  verificarMenorOrcamento.toFixed(2) === value.valorTotal
+                    ? { text: "sim", fontSize: 10 }
+                    : { text: "não", fontSize: 10 },
+                ]
+              : [{ text: "" }, { text: "" }],
+            orcamentos.length > 0
+              ? [
+                  {
+                    text: "Total de empresas participantes:",
+                    fontSize: 10,
+                  },
+                  { text: empresas.length, fontSize: 10 },
+                ]
+              : [{ text: "" }, { text: "" }],
           ],
         },
         layout: "noBorders",
@@ -533,10 +629,8 @@ module.exports = {
         ul: [],
       };
 
-      const orcamentos = await Orcamento.findAll({
-        raw: true,
-        where: { idItem: value.id },
-      });
+      //data item
+      let dataItem = value.dataCompraContratacao;
 
       orcamentos.forEach((value, index) => {
         if (value.pathAnexo) {
@@ -625,24 +719,30 @@ module.exports = {
           {
             // resumo orçamento
             table: {
-              widths: [230, 20],
+              widths: [230, 200],
 
               body: [
                 [
                   { text: "Orçamento realizado anterior a data limite:" },
-                  { text: "s/n" },
+                  verificarDataLimite(edital[0].dataLimitePrestacao, data)
+                    ? { text: "sim", fontSize: 10 }
+                    : { text: "não", fontSize: 10 },
                 ],
                 [
                   { text: "Orçamento realizado anterior ao documento fiscal:" },
-                  { text: "s/n" },
+                  verificarDataLimite(dataItem, data)
+                    ? { text: "sim", fontSize: 10 }
+                    : { text: "não", fontSize: 10 },
                 ],
                 [
                   { text: "Orçamento realizado com o cpf do pesquisador:" },
-                  { text: "s/n" },
+                  value.isOrcadoComCpfCoordenador === 1
+                    ? { text: "sim" }
+                    : { text: "não" },
                 ],
                 [
                   { text: "Orçamento escolhido para realizar a compra:" },
-                  { text: "s/n" },
+                  { text: "vai ser um campo do banco" },
                 ],
               ],
             },
@@ -656,7 +756,6 @@ module.exports = {
         raw: true,
         where: { idItem: value.id },
       });
-      console.log(justificativa);
 
       tabelaJustificativa = {
         style: "lista",
