@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const { query, param, body } = require("express-validator");
-
-const authorization = require("../middleware").auth;
-const paginatedResults = require("../middleware").paginatedResults;
+const {
+  auth: authorization,
+  paginatedResults,
+  validatorsPaginatedResults,
+} = require("../middleware");
 
 //controller methods
 const {
@@ -13,6 +14,11 @@ const {
   post,
   put,
   del,
+  validatorsGet,
+  validatorsGetSingle,
+  validatorsPost,
+  validatorsPut,
+  validatorsDel,
 } = require("../controllers/ItemController");
 const {
   getFile,
@@ -25,62 +31,15 @@ router.use(authorization(false)); //nao é necessario ser admin para realizar ge
 
 router
   .route("/")
-  .get(
-    query("idProjeto").isInt().optional(),
-    query("limit").isInt().optional(),
-    query("page").isInt().optional(),
-    paginatedResults(Item),
-    get
-  );
+  .get(validatorsGet, validatorsPaginatedResults, paginatedResults(Item), get);
 
-router.route("/:id").get(param("id").isInt(), getSingle);
+router.route("/:id").get(validatorsGetSingle, getSingle);
 
 router
   .route("/")
-  .post(
-    body("itens").isArray(),
-    body("itens.*.idProjeto").isInt(),
-    body("itens.*.descricao").isString().optional(),
-    body("itens.*.despesa").isString().optional(),
-    body("itens.*.tipo").isString().optional(),
-    body("itens.*.nomeMaterialServico").isString().optional(),
-    body("itens.*.marca").isString().optional(),
-    body("itens.*.modelo").isString().optional(),
-    body("itens.*.dataCompraContratacao").isDate().optional(),
-    body("itens.*.cnpjFavorecido").isInt().isLength(14).optional(),
-    body("itens.*.numeroDocumentoFiscal").isInt().optional(),
-    body("itens.*.frete").isNumeric().optional(),
-    body("itens.*.quantidade").isInt().optional(),
-    body("itens.*.valorUnitario").isNumeric().optional(),
-    body("itens.*.valorTotal").isNumeric().optional(),
-    body("itens.*.tipoDocumentoFiscal").isString().optional(),
-    body("itens.*.isCompradoComCpfCoordenador").isBoolean().optional(),
-    body("itens.*.posicao").isInt().optional(),
-    post
-  )
-  .put(
-    body("itens").isArray(),
-    body("itens.*.id").isInt(),
-    body("itens.*.idProjeto").isInt().optional(),
-    body("itens.*.descricao").isString().optional(),
-    body("itens.*.despesa").isString().optional(),
-    body("itens.*.tipo").isString().optional(),
-    body("itens.*.nomeMaterialServico").isString().optional(),
-    body("itens.*.marca").isString().optional(),
-    body("itens.*.modelo").isString().optional(),
-    body("itens.*.dataCompraContratacao").isDate().optional(),
-    body("itens.*.cnpjFavorecido").isInt().isLength(14).optional(),
-    body("itens.*.numeroDocumentoFiscal").isInt().optional(),
-    body("itens.*.frete").isNumeric().optional(),
-    body("itens.*.quantidade").isInt().optional(),
-    body("itens.*.valorUnitario").isNumeric().optional(),
-    body("itens.*.valorTotal").isNumeric().optional(),
-    body("itens.*.tipoDocumentoFiscal").isString().optional(),
-    body("itens.*.isCompradoComCpfCoordenador").isBoolean().optional(),
-    body("itens.*.posicao").isInt().optional(),
-    put
-  )
-  .delete((body("itens").isArray(), body("itens.*.id").isNumeric(), del));
+  .post(validatorsPost, post)
+  .put(validatorsPut, put)
+  .delete(validatorsDel, del);
 
 //files
 const multer = require("multer");

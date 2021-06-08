@@ -112,6 +112,22 @@ function paginatedResults(model, where = {}) {
   };
 }
 
+const { query } = require("express-validator");
+const validatorsPaginatedResults = [
+  query("limit").isInt().optional(),
+  query("page").isInt().optional(),
+];
+
+function numberSanitizer(value) {
+  value = Number(value);
+  return isNaN(value) ? 0 : value;
+}
+
+function intSanitizer(value) {
+  value = parseInt(value);
+  return isNaN(value) ? 0 : value;
+}
+
 function getAnexoFileName(file) {
   let ext = path.extname(file.originalname);
   if (ext === ".jpeg") ext = ".jpg";
@@ -122,5 +138,8 @@ function getAnexoFileName(file) {
 module.exports = {
   auth,
   paginatedResults,
+  validatorsPaginatedResults,
+  numberSanitizer,
+  intSanitizer,
   getAnexoFileName,
 };

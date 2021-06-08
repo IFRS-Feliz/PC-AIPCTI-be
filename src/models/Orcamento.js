@@ -47,6 +47,9 @@ module.exports = (sequelize) => {
       isOrcadoComCpfCoordenador: {
         type: DataTypes.BOOLEAN,
       },
+      isOrcamentoCompra: {
+        type: DataTypes.BOOLEAN,
+      },
     },
     {
       timestamps: false,
