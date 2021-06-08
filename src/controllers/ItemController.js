@@ -40,27 +40,36 @@ module.exports = {
       return res.sendStatus(400);
     }
 
-    const results = await Item.bulkCreate(req.body.itens, {
-      updateOnDuplicate: [
-        "idProjeto",
-        "descricao",
-        "despesa",
-        "tipo",
-        "nomeMaterialServico",
-        "marca",
-        "modelo",
-        "dataCompraContratacao",
-        "cnpjFavorecido",
-        "numeroDocumentoFiscal",
-        "frete",
-        "quantidade",
-        "valorUnitario",
-        "valorTotal",
-        "tipoDocumentoFiscal",
-        "isCompradoComCpfCoordenador",
-        "isNaturezaSingular",
-      ],
-    });
+    let results;
+    // caso seja para atualizar a posicao dos itens no relatorio, nao atualizar o resto
+    if (req.query.posicoes) {
+      results = await Item.bulkCreate(req.body.itens, {
+        updateOnDuplicate: ["posicao"],
+      });
+    } else {
+      results = await Item.bulkCreate(req.body.itens, {
+        updateOnDuplicate: [
+          "idProjeto",
+          "descricao",
+          "despesa",
+          "tipo",
+          "nomeMaterialServico",
+          "marca",
+          "modelo",
+          "dataCompraContratacao",
+          "cnpjFavorecido",
+          "numeroDocumentoFiscal",
+          "frete",
+          "quantidade",
+          "valorUnitario",
+          "valorTotal",
+          "tipoDocumentoFiscal",
+          "isCompradoComCpfCoordenador",
+          "isNaturezaSingular",
+          "posicao",
+        ],
+      });
+    }
 
     res.json({ user: req.user, token: req.token, results: results });
   },
