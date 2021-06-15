@@ -6,6 +6,7 @@ const Orcamento = sequelize.models.Orcamento;
 const Justificativa = sequelize.models.Justificativa;
 const Edital = sequelize.models.Edital;
 const AdmZip = require("adm-zip");
+const moment = require("moment");
 
 const fs = require("fs");
 
@@ -129,22 +130,25 @@ module.exports = {
 
     // verificar se a data limite é maior do que data do documento fiscal/orçamento
     function verificarDataLimite(dataEdital, dataInicial) {
-      let data = dataEdital.split("-");
-      if (data[2] >= dataInicial[2]) {
-        if (data[1] >= dataInicial[1]) {
-          if (data[0] >= dataInicial[0]) {
-            return true;
-          }
-          return false;
-        }
-        return false;
+      if (!moment(dataInicial).isAfter(dataEdital)) {
+        return true;
       }
       return false;
     }
 
+    console.log(
+      verificarDataLimite(edital[0].dataLimitePrestacao, "2022-12-05")
+    );
+
     const itens = await Item.findAll({
       raw: true,
       where: { idProjeto: req.params.id },
+    });
+
+    itens.sort((a, b) => {
+      if (a.posicao > b.posicao) return 1;
+      else if (a.posicao < b.posicao) return -1;
+      else return 0;
     });
 
     function valorTotalUtilizado() {
@@ -228,7 +232,7 @@ module.exports = {
                   text: "Número do edital que concedeu recurso",
                   style: "tituloTable",
                 },
-                { text: "nao tem no banco", style: "celulaTable" },
+                { text: edital[0].nome, style: "celulaTable" },
               ],
               [
                 { text: "Campus", style: "tituloTable" },
@@ -304,7 +308,7 @@ module.exports = {
       pageBreak: "after",
       fontSize: 1,
     };
-    // Tabela com todos as informacoes dos documentos fiscais
+    // Tabela com todas as informacoes dos documentos fiscais
 
     let tabelaGeral = {
       table: {
@@ -336,7 +340,10 @@ module.exports = {
       },
     };
 
+    // Variavel que contem o valor total da soma de todos os itens
+
     itens.forEach((value, index) => {
+      // verifica se tem um anexo
       if (value.pathAnexo) {
         let anexoItem = `${process.cwd()}/uploads/${value.pathAnexo}`;
         zip.addLocalFile(anexoItem, "Relatorio/pdfs");
@@ -369,7 +376,12 @@ module.exports = {
           break;
       }
 
-      let data = value.dataCompraContratacao.split("-");
+      let data;
+      if (
+        value.dataCompraContratacao !== null &&
+        value.dataCompraContratacao !== "0000-00-00"
+      )
+        data = value.dataCompraContratacao.split("-");
 
       tabelaGeral.table.body.push([
         {
@@ -381,7 +393,10 @@ module.exports = {
         },
         {
           text: [
-            { text: value.nomeMaterialServico },
+            value.nomeMaterialServico !== null &&
+            value.nomeMaterialServico.length !== 0
+              ? { text: value.nomeMaterialServico }
+              : { text: "Nome não informado" },
             {
               text: "\nver detalhamento",
               style: ["link"],
@@ -394,21 +409,31 @@ module.exports = {
           text: value.tipo,
           style: "celulaTabelaGeral",
         },
-        {
-          text: `${data[2]}/${data[1]}/${data[0]}`,
-          style: "celulaTabelaGeral",
-        },
-        {
-          text: value.cnpjFavorecido.replace(
-            /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g,
-            "$1.$2.$3/$4-$5"
-          ),
-          style: "celulaTabelaGeral",
-        },
-        {
-          text: value.numeroDocumentoFiscal,
-          style: "celulaTabelaGeral",
-        },
+        data !== undefined
+          ? {
+              text: `${data[2]}/${data[1]}/${data[0]}`,
+              style: "celulaTabelaGeral",
+            }
+          : { text: "Data não informada", style: "celulaTabelaGeral" },
+        value.cnpjFavorecido !== null && value.cnpjFavorecido.length !== 0
+          ? {
+              text: value.cnpjFavorecido.replace(
+                /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g,
+                "$1.$2.$3/$4-$5"
+              ),
+              style: "celulaTabelaGeral",
+            }
+          : { text: "CNPJ não informado", style: "celulaTabelaGeral" },
+        value.numeroDocumentoFiscal !== null &&
+        value.numeroDocumentoFiscal.length !== 0
+          ? {
+              text: value.numeroDocumentoFiscal,
+              style: "celulaTabelaGeral",
+            }
+          : {
+              text: "Número documento fiscal não informado",
+              style: "celulaTabelaGeral",
+            },
         {
           text: value.valorUnitario,
           style: "celulaTabelaGeral",
@@ -428,7 +453,20 @@ module.exports = {
       ]);
     });
 
-    docDefinition.content.push(separacao, tabelaGeral, quebrarPagina);
+    // Valor total de todos os itens do projeto
+    let totalItens = {
+      text: `Valor total - R$ ${valorTotalUtilizado()}`,
+      fontSize: 10,
+      margin: [0, 4],
+      alignment: "right",
+    };
+
+    docDefinition.content.push(
+      separacao,
+      tabelaGeral,
+      totalItens,
+      quebrarPagina
+    );
 
     // Pagina de cada item
     for (let index = 0; index < itens.length; index++) {
@@ -447,8 +485,12 @@ module.exports = {
       // Verificar o menor orcamento do item e a quantidade de empresas diferentes
       orcamentos.forEach((value) => {
         // verefica a quantidade de empresas que foram orçadas
-        if (!empresas.includes(value.cnpjFavorecido)) {
-          empresas.push(value.cnpjFavorecido);
+        if (
+          !empresas.includes(value.cnpjFavorecido) &&
+          value.cnpjFavorecido !== null
+        ) {
+          if (value.cnpjFavorecido.length !== 0)
+            empresas.push(value.cnpjFavorecido);
         }
 
         // verifica o valor de cada orcamento com o valor do item
@@ -456,8 +498,6 @@ module.exports = {
           verificarMenorOrcamento = Number(value.valorTotal);
         }
       });
-
-      console.log(empresas.length);
 
       let idItem = {
         text: ".",
@@ -467,14 +507,25 @@ module.exports = {
       };
 
       let titulo = {
-        text: `Item ${index + 1} - ${value.nomeMaterialServico}`,
+        text: `Item ${index + 1} - ${
+          value.nomeMaterialServico !== null &&
+          value.nomeMaterialServico.length !== 0
+            ? value.nomeMaterialServico
+            : "Nome não informado"
+        }`,
         alignment: "center",
         id: `descricao${index + 1}`,
         fontSize: 15,
         margin: [0, 0, 0, 15],
       };
 
-      let data = value.dataCompraContratacao.split("-");
+      let data;
+      if (
+        value.dataCompraContratacao !== null &&
+        value.dataCompraContratacao !== "0000-00-00"
+      )
+        data = value.dataCompraContratacao.split("-");
+      console.log("item - " + data);
 
       let tituloDocumentoFiscal = {
         text: "Documento fiscal:",
@@ -497,16 +548,25 @@ module.exports = {
               },
               {
                 text: [
-                  {
-                    text: `Nome - ${value.nomeMaterialServico}\n`,
-                    lineHeight: 1.2,
-                  },
-                  {
-                    text: `Descrição - ${value.descricao}\n`,
-                    lineHeight: 1.2,
-                  },
-                  { text: `Marca - ${value.marca}\n`, lineHeight: 1.2 },
-                  { text: `Modelo - ${value.modelo}`, lineHeight: 1 },
+                  value.nomeMaterialServico !== null &&
+                  value.nomeMaterialServico.length !== 0
+                    ? {
+                        text: `Nome - ${value.nomeMaterialServico}\n`,
+                        lineHeight: 1.2,
+                      }
+                    : { text: "Nome - não informado \n", lineHeight: 1.2 },
+                  value.descricao !== null && value.descricao.length !== 0
+                    ? {
+                        text: `Descrição - ${value.descricao}\n`,
+                        lineHeight: 1.2,
+                      }
+                    : { text: "Descrição - não informada \n", lineHeight: 1.2 },
+                  value.marca !== null && value.marca.length !== 0
+                    ? { text: `Marca - ${value.marca}\n`, lineHeight: 1.2 }
+                    : { text: "Marca - não informada \n", lineHeight: 1.2 },
+                  value.modelo !== null && value.modelo.length !== 0
+                    ? { text: `Modelo - ${value.modelo}`, lineHeight: 1 }
+                    : { text: "Modelo - não informado", lineHeight: 1 },
                 ],
                 style: "celulaTable",
               },
@@ -520,24 +580,31 @@ module.exports = {
             ],
             [
               { text: "Data", style: "tituloTable" },
-              {
-                text: [`${data[2]}/${data[1]}/${data[0]}`],
-                style: "celulaTable",
-              },
+              data !== undefined
+                ? {
+                    text: [`${data[2]}/${data[1]}/${data[0]}`],
+                    style: "celulaTable",
+                  }
+                : { text: "Não informada", style: "celulaTable" },
             ],
             [
               { text: "Favorecido", style: "tituloTable" },
-              {
-                text: value.cnpjFavorecido.replace(
-                  /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g,
-                  "$1.$2.$3/$4-$5"
-                ),
-                style: "celulaTable",
-              },
+              value.cnpjFavorecido !== null && value.cnpjFavorecido.length !== 0
+                ? {
+                    text: value.cnpjFavorecido.replace(
+                      /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g,
+                      "$1.$2.$3/$4-$5"
+                    ),
+                    style: "celulaTable",
+                  }
+                : { text: "Não informado", style: "celulaTable" },
             ],
             [
               { text: "Nº do documento fiscal", style: "tituloTable" },
-              { text: value.numeroDocumentoFiscal, style: "celulaTable" },
+              value.numeroDocumentoFiscal !== null &&
+              value.numeroDocumentoFiscal.length !== 0
+                ? { text: value.numeroDocumentoFiscal, style: "celulaTable" }
+                : { text: "Número não informado", style: "celulaTable" },
             ],
             [
               { text: "Valor unitário", style: "tituloTable" },
@@ -584,9 +651,14 @@ module.exports = {
                 text: "Documento fiscal realizado anterior a data limite:",
                 fontSize: 10,
               },
-              verificarDataLimite(edital[0].dataLimitePrestacao, data)
-                ? { text: "sim", fontSize: 10 }
-                : { text: "não", fontSize: 10 },
+              data !== undefined
+                ? verificarDataLimite(
+                    edital[0].dataLimitePrestacao,
+                    value.dataCompraContratacao
+                  )
+                  ? { text: "Sim.", fontSize: 10 }
+                  : { text: "Não.", fontSize: 10 }
+                : { text: "Data não informada.", fontSize: 10 },
             ],
             [
               {
@@ -594,8 +666,8 @@ module.exports = {
                 fontSize: 10,
               },
               value.isCompradoComCpfCoordenador === 1
-                ? { text: `sim`, fontSize: 10 }
-                : { text: `não`, fontSize: 10 },
+                ? { text: `Sim.`, fontSize: 10 }
+                : { text: `Não.`, fontSize: 10 },
             ],
             orcamentos.length > 0
               ? [
@@ -603,18 +675,28 @@ module.exports = {
                     text: "Documento fiscal referente ao orçamento de menor preço:",
                     fontSize: 10,
                   },
-                  verificarMenorOrcamento.toFixed(2) === value.valorTotal
-                    ? { text: "sim", fontSize: 10 }
-                    : { text: "não", fontSize: 10 },
+                  verificarMenorOrcamento !== 0
+                    ? verificarMenorOrcamento.toFixed(2) === value.valorTotal
+                      ? { text: "Sim.", fontSize: 10 }
+                      : { text: "Não.", fontSize: 10 }
+                    : {
+                        text: "Algum orçamento com valor não informado.",
+                        fontSize: 10,
+                      },
                 ]
               : [{ text: "" }, { text: "" }],
             orcamentos.length > 0
               ? [
                   {
-                    text: "Total de empresas participantes:",
+                    text: "Total de empresas participantes com CNPJ's diferentes:",
                     fontSize: 10,
                   },
-                  { text: empresas.length, fontSize: 10 },
+                  empresas.length !== 0
+                    ? { text: empresas.length, fontSize: 10 }
+                    : {
+                        text: "Empresa(s) com CNPJ não informado.",
+                        fontSize: 10,
+                      },
                 ]
               : [{ text: "" }, { text: "" }],
           ],
@@ -630,7 +712,12 @@ module.exports = {
       };
 
       //data item
-      let dataItem = value.dataCompraContratacao;
+      let dataItem;
+      if (
+        value.dataCompraContratacao !== null &&
+        value.dataCompraContratacao !== "0000-00-00"
+      )
+        dataItem = value.dataCompraContratacao;
 
       orcamentos.forEach((value, index) => {
         if (value.pathAnexo) {
@@ -638,7 +725,12 @@ module.exports = {
           zip.addLocalFile(anexoOrcamento, "Relatorio/pdfs");
         }
 
-        let data = value.dataOrcamento.split("-");
+        let data;
+        if (
+          value.dataOrcamento !== null &&
+          value.dataOrcamento !== "0000-00-00"
+        )
+          data = value.dataOrcamento.split("-");
         tabelaOrcamento.ul.push(
           [
             {
@@ -654,32 +746,53 @@ module.exports = {
                     { text: "Detalhamento", style: "tituloTable" },
                     {
                       text: [
-                        {
-                          text: `Nome - ${value.nomeMaterialServico}\n`,
-                          lineHeight: 1.2,
-                        },
-                        { text: `Marca - ${value.marca}\n`, lineHeight: 1.2 },
-                        { text: `Modelo - ${value.modelo}`, lineHeight: 1 },
+                        value.nomeMaterialServico !== null &&
+                        value.nomeMaterialServico.length !== 0
+                          ? {
+                              text: `Nome - ${value.nomeMaterialServico}\n`,
+                              lineHeight: 1.2,
+                            }
+                          : {
+                              text: "Nome - não informado \n",
+                              lineHeight: 1.2,
+                            },
+                        value.marca !== null && value.marca.length !== 0
+                          ? {
+                              text: `Marca - ${value.marca}\n`,
+                              lineHeight: 1.2,
+                            }
+                          : {
+                              text: "Marca - não informada \n",
+                              lineHeight: 1.2,
+                            },
+                        value.modelo !== null && value.modelo.length !== 0
+                          ? { text: `Modelo - ${value.modelo}`, lineHeight: 1 }
+                          : { text: "Modelo - não informado", lineHeight: 1 },
                       ],
                       style: "celulaTable",
                     },
                   ],
                   [
                     { text: "Data", style: "tituloTable" },
-                    {
-                      text: `${data[2]}/${data[1]}/${data[0]}`,
-                      style: "celulaTable",
-                    },
+                    data !== undefined
+                      ? {
+                          text: `${data[2]}/${data[1]}/${data[0]}`,
+                          style: "celulaTable",
+                        }
+                      : { text: "Não informada", style: "celulaTable" },
                   ],
                   [
                     { text: "Favorecido", style: "tituloTable" },
-                    {
-                      text: value.cnpjFavorecido.replace(
-                        /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g,
-                        "$1.$2.$3/$4-$5"
-                      ),
-                      style: "celulaTable",
-                    },
+                    value.cnpjFavorecido !== null &&
+                    value.cnpjFavorecido.length !== 0
+                      ? {
+                          text: value.cnpjFavorecido.replace(
+                            /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/g,
+                            "$1.$2.$3/$4-$5"
+                          ),
+                          style: "celulaTable",
+                        }
+                      : { text: "Não informado", style: "celulaTable" },
                   ],
                   [
                     { text: "Valor unitário", style: "tituloTable" },
@@ -719,30 +832,42 @@ module.exports = {
           {
             // resumo orçamento
             table: {
-              widths: [230, 200],
+              widths: [230, 300],
 
               body: [
                 [
                   { text: "Orçamento realizado anterior a data limite:" },
-                  verificarDataLimite(edital[0].dataLimitePrestacao, data)
-                    ? { text: "sim", fontSize: 10 }
-                    : { text: "não", fontSize: 10 },
+                  data !== undefined
+                    ? verificarDataLimite(
+                        edital[0].dataLimitePrestacao,
+                        value.dataOrcamento
+                      )
+                      ? { text: "Sim.", fontSize: 10 }
+                      : { text: "Não.", fontSize: 10 }
+                    : { text: "Data não informada.", fontSize: 10 },
                 ],
                 [
                   { text: "Orçamento realizado anterior ao documento fiscal:" },
-                  verificarDataLimite(dataItem, data)
-                    ? { text: "sim", fontSize: 10 }
-                    : { text: "não", fontSize: 10 },
+                  dataItem !== undefined && data !== undefined
+                    ? verificarDataLimite(dataItem, value.dataOrcamento)
+                      ? { text: "Sim.", fontSize: 10 }
+                      : { text: "Não.", fontSize: 10 }
+                    : {
+                        text: "Data do orçamento ou documento fiscal não informada.",
+                        fontSize: 10,
+                      },
                 ],
                 [
                   { text: "Orçamento realizado com o cpf do pesquisador:" },
                   value.isOrcadoComCpfCoordenador === 1
-                    ? { text: "sim" }
-                    : { text: "não" },
+                    ? { text: "Sim." }
+                    : { text: "Não." },
                 ],
                 [
                   { text: "Orçamento escolhido para realizar a compra:" },
-                  { text: "vai ser um campo do banco" },
+                  value.isOrcamentoCompra === 1
+                    ? { text: "Sim." }
+                    : { text: "Não." },
                 ],
               ],
             },
@@ -815,7 +940,11 @@ module.exports = {
         separacao,
         resumoDocumentoFiscal,
         orcamentos.length > 0 ? tabelaOrcamento : "",
-        justificativa.length === 0 ? quebrarPagina : "",
+        itens.length - 1 !== index
+          ? justificativa.length === 0
+            ? quebrarPagina
+            : ""
+          : "",
         justificativa.length > 0 ? tabelaJustificativa : ""
       );
     }
@@ -841,7 +970,7 @@ Muito obrigado pela sua colaboração. :)
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 `;
-    zip.addFile("Relatorio/README.txt", read, "", "r");
+    zip.addFile("Relatorio/README.txt", read, "");
 
     //console.log(itens);
 

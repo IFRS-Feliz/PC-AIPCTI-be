@@ -7,7 +7,11 @@ const {
 } = require("express-validator");
 const sequelize = require("../services/db");
 const Orcamento = sequelize.models.Orcamento;
-const { numberSanitizer, intSanitizer } = require("../middleware");
+const {
+  numberSanitizer,
+  intSanitizer,
+  dataSanitizer,
+} = require("../middleware");
 
 const validatorsGet = [query("idItem").isInt().optional()];
 const validatorsGetSingle = [param("id").isInt()];
@@ -16,6 +20,7 @@ const validatorsPostPut = [
   oneOf([
     body("orcamentos.*.dataOrcamento").isDate().optional(),
     body("orcamentos.*.dataOrcamento").isEmpty().optional(),
+    body("orcamentos.*.dataOrcamento").customSanitizer(dataSanitizer),
   ]),
   oneOf([
     body("orcamentos.*.nomeMaterialServico").isString().optional(),

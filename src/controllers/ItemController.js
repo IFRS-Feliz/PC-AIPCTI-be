@@ -7,7 +7,11 @@ const {
 } = require("express-validator");
 const sequelize = require("../services/db");
 const Item = sequelize.models.Item;
-const { numberSanitizer, intSanitizer } = require("../middleware");
+const {
+  numberSanitizer,
+  intSanitizer,
+  dataSanitizer,
+} = require("../middleware");
 
 const validatorsGet = [query("idProjeto").isInt().optional()];
 const validatorsGetSingle = [param("id").isInt()];
@@ -48,6 +52,7 @@ const validatorsPostPut = [
   oneOf([
     body("itens.*.dataCompraContratacao").isDate().optional(),
     body("itens.*.dataCompraContratacao").isEmpty().optional(),
+    body("itens.*.dataCompraContratacao").customSanitizer(dataSanitizer),
   ]),
   oneOf([
     body("itens.*.cnpjFavorecido").isInt().isLength(14).optional(),

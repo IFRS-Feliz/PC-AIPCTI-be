@@ -128,6 +128,10 @@ function intSanitizer(value) {
   return isNaN(value) ? 0 : value;
 }
 
+function dataSanitizer(value) {
+  return value === "0000-00-00" ? null : value;
+}
+
 function getAnexoFileName(file) {
   let ext = path.extname(file.originalname);
   if (ext === ".jpeg") ext = ".jpg";
@@ -140,6 +144,7 @@ module.exports = {
   paginatedResults,
   validatorsPaginatedResults,
   numberSanitizer,
+  dataSanitizer,
   intSanitizer,
   getAnexoFileName,
 };
