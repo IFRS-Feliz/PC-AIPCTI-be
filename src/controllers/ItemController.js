@@ -34,24 +34,30 @@ const validatorsPostPut = [
       : value;
   }),
   oneOf([
-    body("itens.*.nomeMaterialServico").isString().optional(),
-    body("itens.*.nomeMaterialServico").isEmpty().optional(),
+    body("itens.*.nomeMaterialServico").isString().optional({ nullable: true }),
+    body("itens.*.nomeMaterialServico").isEmpty().optional({ nullable: true }),
   ]),
   oneOf([
-    body("itens.*.marca").isString().optional(),
-    body("itens.*.marca").isEmpty().optional(),
+    body("itens.*.marca").isString().optional({ nullable: true }),
+    body("itens.*.marca").isEmpty().optional({ nullable: true }),
   ]),
   oneOf([
-    body("itens.*.modelo").isString().optional(),
-    body("itens.*.modelo").isEmpty().optional(),
+    body("itens.*.modelo").isString().optional({ nullable: true }),
+    body("itens.*.modelo").isEmpty().optional({ nullable: true }),
   ]),
   oneOf([
     body("itens.*.dataCompraContratacao").isDate().optional(),
     body("itens.*.dataCompraContratacao").isEmpty().optional(),
   ]),
+  body("itens.*.cnpjFavorecido").customSanitizer((value) =>
+    !value ? null : value
+  ),
   oneOf([
-    body("itens.*.cnpjFavorecido").isInt().isLength(14).optional(),
-    body("itens.*.cnpjFavorecido").isEmpty().optional(),
+    body("itens.*.cnpjFavorecido")
+      .isInt()
+      .isLength(14)
+      .optional({ nullable: true }),
+    body("itens.*.cnpjFavorecido").isEmpty().optional({ nullable: true }),
   ]),
   oneOf([
     body("itens.*.numeroDocumentoFiscal").isInt().optional(),

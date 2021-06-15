@@ -18,20 +18,30 @@ const validatorsPostPut = [
     body("orcamentos.*.dataOrcamento").isEmpty().optional(),
   ]),
   oneOf([
-    body("orcamentos.*.nomeMaterialServico").isString().optional(),
-    body("orcamentos.*.nomeMaterialServico").isEmpty().optional(),
+    body("orcamentos.*.nomeMaterialServico")
+      .isString()
+      .optional({ nullable: true }),
+    body("orcamentos.*.nomeMaterialServico")
+      .isEmpty()
+      .optional({ nullable: true }),
   ]),
   oneOf([
-    body("orcamentos.*.marca").isString().optional(),
-    body("orcamentos.*.marca").isEmpty().optional(),
+    body("orcamentos.*.marca").isString().optional({ nullable: true }),
+    body("orcamentos.*.marca").isEmpty().optional({ nullable: true }),
   ]),
   oneOf([
-    body("orcamentos.*.modelo").isString().optional(),
-    body("orcamentos.*.modelo").isEmpty().optional(),
+    body("orcamentos.*.modelo").isString().optional({ nullable: true }),
+    body("orcamentos.*.modelo").isEmpty().optional({ nullable: true }),
   ]),
+  body("orcamentos.*.cnpjFavorecido").customSanitizer((value) =>
+    !value ? null : value
+  ),
   oneOf([
-    body("orcamentos.*.cnpjFavorecido").isInt().isLength(14).optional(),
-    body("orcamentos.*.cnpjFavorecido").isEmpty().optional(),
+    body("orcamentos.*.cnpjFavorecido")
+      .isInt()
+      .isLength(14)
+      .optional({ nullable: true }),
+    body("orcamentos.*.cnpjFavorecido").isEmpty().optional({ nullable: true }),
   ]),
   body("orcamentos.*.frete").customSanitizer(numberSanitizer),
   body("orcamentos.*.quantidade").customSanitizer(intSanitizer),
@@ -87,6 +97,7 @@ module.exports = {
   },
   put: async (req, res) => {
     if (!validationResult(req).isEmpty()) {
+      console.log(req.body.orcamentos);
       return res.sendStatus(400);
     }
 
