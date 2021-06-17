@@ -32,6 +32,50 @@ router
 
 router.route("/:id").get(param("id").isInt(), getSingle);
 
+//gru
+const {
+  get: getGru,
+  post: postGru,
+  put: putGru,
+  getFile: getGruFile,
+  postFile: postGruFile,
+  deleteFile: deleteGruFile,
+  gruFileIsComprovanteOrGru,
+} = require("../controllers/GruController");
+
+router.use("/:id/gru", param("id").isInt());
+
+router
+  .route("/:id/gru")
+  .get(getGru)
+  .post(
+    body("gru").isObject(),
+    body("gru.valorTotal").isNumeric(),
+    body("gru.idProjeto").isInt(),
+    postGru
+  )
+  .put(body("gru").isObject(), body("gru.valorTotal").isNumeric(), putGru);
+
+//  gru files
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
+
+router
+  .route("/:id/gru/file")
+  .get(query("type").custom(gruFileIsComprovanteOrGru), getGruFile);
+
+router
+  .route("/:id/gru/file")
+  .post(
+    query("type").custom(gruFileIsComprovanteOrGru),
+    upload.single("file"),
+    postGruFile
+  );
+
+router
+  .route("/:id/gru/file")
+  .delete(query("type").custom(gruFileIsComprovanteOrGru), deleteGruFile);
+
 router.route("/:id/relatorio").get(param("id").isInt(), getRelatorio);
 
 router.use(authorization(true)); //é necessario ser admin para outros metodos
