@@ -22,6 +22,7 @@ const modelDefiners = [
   require("../models/Item"),
   require("../models/Orcamento"),
   require("../models/Justificativa"),
+  require("../models/Gru"),
 ];
 
 // definir cada model
