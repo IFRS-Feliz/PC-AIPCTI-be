@@ -10,6 +10,7 @@ const {
   put,
   del,
   getSingle,
+  changePassword,
 } = require("../controllers/UserController");
 const User = require("../services/db").models.User;
 
@@ -30,6 +31,14 @@ router
 router
   .route("/:cpf")
   .get(param("cpf").isLength({ min: 11, max: 11 }).isInt(), getSingle);
+
+router
+  .route("/:cpf/senha")
+  .put(
+    param("cpf").isLength({ min: 11, max: 11 }).isInt(),
+    body("password").isString(),
+    changePassword
+  );
 
 router.use(authorization(true)); //é necessario ser admin para outros metodos
 
