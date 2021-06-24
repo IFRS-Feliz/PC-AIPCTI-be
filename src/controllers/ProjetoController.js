@@ -5,6 +5,7 @@ const Item = sequelize.models.Item;
 const Orcamento = sequelize.models.Orcamento;
 const Justificativa = sequelize.models.Justificativa;
 const Edital = sequelize.models.Edital;
+const Gru = sequelize.models.Gru;
 const AdmZip = require("adm-zip");
 const moment = require("moment");
 
@@ -123,6 +124,13 @@ module.exports = {
       where: { id: req.params.id },
     });
 
+    const gru = await Gru.findAll({
+      raw: true,
+      where: { idProjeto: projeto[0].id },
+    });
+
+    console.log(gru);
+
     const edital = await Edital.findAll({
       raw: true,
       where: { id: projeto[0].idEdital },
@@ -135,10 +143,6 @@ module.exports = {
       }
       return false;
     }
-
-    console.log(
-      verificarDataLimite(edital[0].dataLimitePrestacao, "2022-12-05")
-    );
 
     const itens = await Item.findAll({
       raw: true,
@@ -533,7 +537,6 @@ module.exports = {
         value.dataCompraContratacao !== "0000-00-00"
       )
         data = value.dataCompraContratacao.split("-");
-      console.log("item - " + data);
 
       let tituloDocumentoFiscal = {
         text: "Documento fiscal:",
@@ -952,6 +955,49 @@ module.exports = {
       );
     }
 
+    let tituloGru = {
+      text: "GRU - Guia de Recolhimento da União",
+    };
+
+    let tabelaGru = {
+      table: {
+        widths: [269.25, 269.25],
+        body: [
+          [
+            { text: "Custeio", alignment: "center" },
+            { text: "Capital", alignment: "center" },
+          ],
+          [
+            { text: "Valor total: ", alignment: "left" },
+            { text: "Valor total: ", alignment: "left" },
+          ],
+          [
+            { text: "Valor restante: ", alignment: "left" },
+            { text: "Valor restante: ", alignment: "left" },
+          ],
+          [
+            { text: "Valor devolvido: ", alignment: "left" },
+            { text: "Valor devolvido: ", alignment: "left" },
+          ],
+          [
+            { text: "Anexo GRU: ", alignment: "left" },
+            { text: "Anexo GRU: ", alignment: "left" },
+          ],
+          [
+            { text: "Anexo comprovante: ", alignment: "left" },
+            { text: "Anexo comprovante: ", alignment: "left" },
+          ],
+        ],
+      },
+      layout: {
+        vLineWidth: () => 0.2,
+        hLineWidth: () => 0.2,
+      },
+    };
+
+    gru.length &&
+      docDefinition.content.push(quebrarPagina, tituloGru, tabelaGru);
+
     let pdfDoc = printer.createPdfKitDocument(docDefinition);
 
     //pdfDoc.pipe(res);
@@ -974,8 +1020,6 @@ Muito obrigado pela sua colaboração. :)
 
 `;
     zip.addFile("Relatorio/README.txt", read, "");
-
-    //console.log(itens);
 
     //let anexoItem = `${process.cwd()}/uploads/${value.pathAnexo}`;
 

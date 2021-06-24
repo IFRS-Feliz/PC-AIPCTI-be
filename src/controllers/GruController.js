@@ -8,7 +8,14 @@ const { validationResult } = require("express-validator");
 
 function gruFileIsComprovanteOrGru(value) {
   const type = value;
-  if (!["pathAnexoGru", "pathAnexoComprovante"].includes(type)) {
+  if (
+    ![
+      "pathAnexoGruCusteio",
+      "pathAnexoComprovanteCusteio",
+      "pathAnexoGruCapital",
+      "pathAnexoComprovanteCapital",
+    ].includes(type)
+  ) {
     throw new Error(
       "gru file type must be either pathAnexoGru or pathAnexoComprovante"
     );
@@ -31,7 +38,7 @@ module.exports = {
     }
     const gru = req.body.gru;
     const result = await Gru.create(gru, {
-      fields: ["idProjeto", "valorTotal"],
+      fields: ["idProjeto", "valorTotalCusteio", "valorTotalCapital"],
     });
     res.json({ user: req.user, token: req.token, results: [result] });
   },
@@ -42,7 +49,7 @@ module.exports = {
     const gru = req.body.gru;
     const result = await Gru.update(gru, {
       where: { id: gru.id },
-      fields: ["valorTotal"],
+      fields: ["valorTotalCusteio", "valorTotalCapital"],
     });
 
     res.json({ user: req.user, token: req.token, results: [result] });

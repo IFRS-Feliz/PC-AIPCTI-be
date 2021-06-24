@@ -50,11 +50,19 @@ router
   .get(getGru)
   .post(
     body("gru").isObject(),
-    body("gru.valorTotal").isNumeric(),
+    body("gru.valorTotalCusteio").isNumeric(),
+    body("gru.valorTotalCapital").isNumeric(),
     body("gru.idProjeto").isInt(),
     postGru
   )
-  .put(body("gru").isObject(), body("gru.valorTotal").isNumeric(), putGru);
+  .put(
+    body("gru").isObject(),
+    body("gru.valorTotalCusteio").isNumeric(),
+    putGru,
+    body("gru").isObject(),
+    body("gru.valorTotalCapital").isNumeric(),
+    putGru
+  );
 
 //  gru files
 const multer = require("multer");
