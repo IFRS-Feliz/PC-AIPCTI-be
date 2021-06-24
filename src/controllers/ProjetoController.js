@@ -240,15 +240,23 @@ module.exports = {
               ],
               [
                 { text: "Valor total recebido", style: "tituloTable" },
-                { text: projeto[0].valorRecebidoTotal, style: "celulaTable" },
+                {
+                  text: `R$ ${projeto[0].valorRecebidoTotal}`,
+                  style: "celulaTable",
+                },
               ],
               [
                 { text: "Valor total utilizado", style: "tituloTable" },
-                { text: valorTotalUtilizado(), style: "celulaTable" },
+                { text: `R$ ${valorTotalUtilizado()}`, style: "celulaTable" },
               ],
               [
                 { text: "Valor total devolvido (GRU)", style: "tituloTable" },
-                { text: "nao tem no banco", style: "celulaTable" },
+                {
+                  text: `R$ ${(
+                    projeto[0].valorRecebidoTotal - valorTotalUtilizado()
+                  ).toFixed(2)}`,
+                  style: "celulaTable",
+                },
               ],
             ],
           },
@@ -435,7 +443,7 @@ module.exports = {
               style: "celulaTabelaGeral",
             },
         {
-          text: value.valorUnitario,
+          text: `R$ ${value.valorUnitario}`,
           style: "celulaTabelaGeral",
         },
         {
@@ -443,11 +451,11 @@ module.exports = {
           style: "celulaTabelaGeral",
         },
         {
-          text: value.frete,
+          text: `R$ ${value.frete}`,
           style: "celulaTabelaGeral",
         },
         {
-          text: value.valorTotal,
+          text: `R$ ${value.valorTotal}`,
           style: "celulaTabelaGeral",
         },
       ]);
@@ -579,7 +587,7 @@ module.exports = {
               },
             ],
             [
-              { text: "Data", style: "tituloTable" },
+              { text: "Data do documento fiscal", style: "tituloTable" },
               data !== undefined
                 ? {
                     text: [`${data[2]}/${data[1]}/${data[0]}`],
@@ -608,7 +616,7 @@ module.exports = {
             ],
             [
               { text: "Valor unitário", style: "tituloTable" },
-              { text: value.valorUnitario, style: "celulaTable" },
+              { text: `R$ ${value.valorUnitario}`, style: "celulaTable" },
             ],
             [
               { text: "Quantidade", style: "tituloTable" },
@@ -616,11 +624,11 @@ module.exports = {
             ],
             [
               { text: "Frete", style: "tituloTable" },
-              { text: value.frete, style: "celulaTable" },
+              { text: `R$ ${value.frete}`, style: "celulaTable" },
             ],
             [
               { text: "Valor total", style: "tituloTable" },
-              { text: value.valorTotal, style: "celulaTable" },
+              { text: `R$ ${value.valorTotal}`, style: "celulaTable" },
             ],
             [
               { text: "Anexo documento fiscal", style: "tituloTable" },
@@ -648,7 +656,7 @@ module.exports = {
           body: [
             [
               {
-                text: "Documento fiscal realizado anterior a data limite:",
+                text: "Data da aquisição anterior ao prazo do Edital:",
                 fontSize: 10,
               },
               data !== undefined
@@ -672,29 +680,24 @@ module.exports = {
             orcamentos.length > 0
               ? [
                   {
-                    text: "Documento fiscal referente ao orçamento de menor preço:",
+                    text: "Aquisição do orçamento com menor valor:",
                     fontSize: 10,
                   },
-                  verificarMenorOrcamento !== 0
-                    ? verificarMenorOrcamento.toFixed(2) === value.valorTotal
-                      ? { text: "Sim.", fontSize: 10 }
-                      : { text: "Não.", fontSize: 10 }
-                    : {
-                        text: "Algum orçamento com valor não informado.",
-                        fontSize: 10,
-                      },
+                  verificarMenorOrcamento.toFixed(2) === value.valorTotal
+                    ? { text: "Sim.", fontSize: 10 }
+                    : { text: "Não.", fontSize: 10 },
                 ]
               : [{ text: "" }, { text: "" }],
             orcamentos.length > 0
               ? [
                   {
-                    text: "Total de empresas participantes com CNPJ's diferentes:",
+                    text: "Fornecedores com CNPJ diferente:",
                     fontSize: 10,
                   },
                   empresas.length !== 0
                     ? { text: empresas.length, fontSize: 10 }
                     : {
-                        text: "Empresa(s) com CNPJ não informado.",
+                        text: "Nenhuma empresa informada.",
                         fontSize: 10,
                       },
                 ]
@@ -773,7 +776,7 @@ module.exports = {
                     },
                   ],
                   [
-                    { text: "Data", style: "tituloTable" },
+                    { text: "Data do orçamento", style: "tituloTable" },
                     data !== undefined
                       ? {
                           text: `${data[2]}/${data[1]}/${data[0]}`,
@@ -796,7 +799,7 @@ module.exports = {
                   ],
                   [
                     { text: "Valor unitário", style: "tituloTable" },
-                    { text: value.valorUnitario, style: "celulaTable" },
+                    { text: `R$ ${value.valorUnitario}`, style: "celulaTable" },
                   ],
                   [
                     { text: "Quantidade", style: "tituloTable" },
@@ -804,11 +807,11 @@ module.exports = {
                   ],
                   [
                     { text: "Frete", style: "tituloTable" },
-                    { text: value.frete, style: "celulaTable" },
+                    { text: `R$ ${value.frete}`, style: "celulaTable" },
                   ],
                   [
                     { text: "Valor total", style: "tituloTable" },
-                    { text: value.valorTotal, style: "celulaTable" },
+                    { text: `R$ ${value.valorTotal}`, style: "celulaTable" },
                   ],
                   [
                     { text: "Anexo do orçamento", style: "tituloTable" },
@@ -847,7 +850,7 @@ module.exports = {
                     : { text: "Data não informada.", fontSize: 10 },
                 ],
                 [
-                  { text: "Orçamento realizado anterior ao documento fiscal:" },
+                  { text: "Orçamento realizado anterior a aquisição:" },
                   dataItem !== undefined && data !== undefined
                     ? verificarDataLimite(dataItem, value.dataOrcamento)
                       ? { text: "Sim.", fontSize: 10 }
