@@ -63,13 +63,8 @@ module.exports = {
       try {
         const file = await fs.readFile("uploads/" + fileName);
 
-        res.send({
-          user: req.user,
-          token: req.token,
-          id: req.params.id,
-          file: file,
-          fileMime: mime.getType(fileName),
-        });
+        res.setHeader("content-type", mime.getType(fileName));
+        res.send(file);
       } catch (error) {
         res.status(500).send(error);
       }
