@@ -2,12 +2,14 @@ require("dotenv").config();
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
-const routes = require("./routes/routes");
-
 const express = require("express");
-const sequelize = require("./services/db");
+require("express-async-errors");
+const sequelize = require("./db");
 const app = express();
 const port = process.env.PORT || 5000;
+
+const routes = require("./routes");
+const { errorHandler } = require("./middleware/errorHandling");
 
 //middleware setup
 app.use(
@@ -22,6 +24,9 @@ app.use(cookieParser());
 
 //routes
 app.use(routes);
+
+//error handler
+app.use(errorHandler);
 
 sequelize
   .authenticate()

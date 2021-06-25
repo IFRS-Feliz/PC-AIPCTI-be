@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { body, query, param } = require("express-validator");
+const { checkValidations } = require("../middleware/errorHandling");
 
 //controller methods
 const {
@@ -12,11 +13,10 @@ const {
   getSingle,
   changePassword,
 } = require("../controllers/UserController");
-const User = require("../services/db").models.User;
+const User = require("../db").models.User;
 
 //setup authorization middleware
-const authorization = require("../middleware").auth;
-const paginatedResults = require("../middleware").paginatedResults;
+const { auth: authorization, paginatedResults } = require("../middleware");
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
 router
@@ -30,13 +30,18 @@ router
 
 router
   .route("/:cpf")
-  .get(param("cpf").isLength({ min: 11, max: 11 }).isInt(), getSingle);
+  .get(
+    param("cpf").isLength({ min: 11, max: 11 }).isInt(),
+    checkValidations,
+    getSingle
+  );
 
 router
   .route("/:cpf/senha")
   .put(
     param("cpf").isLength({ min: 11, max: 11 }).isInt(),
     body("password").isString(),
+    checkValidations,
     changePassword
   );
 
@@ -44,11 +49,16 @@ router.use(authorization(true)); //é necessario ser admin para outros metodos
 
 router
   .route("/")
-  .delete(body("cpf").isLength({ min: 11, max: 11 }).isInt(), del)
+  .delete(
+    body("cpf").isLength({ min: 11, max: 11 }).isInt(),
+    checkValidations.apply,
+    del
+  )
   .post(
     body("email").isEmail(),
     body("cpf").isLength({ min: 11, max: 11 }).isInt(),
     body("nome").exists(),
+    checkValidations,
     post
   )
   .put(
@@ -56,6 +66,7 @@ router
     body("email").isEmail(),
     body("cpf").isLength({ min: 11, max: 11 }).isInt(),
     body("nome").exists(),
+    checkValidations,
     put
   );
 

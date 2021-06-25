@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const { query } = require("express-validator");
-const authentication = require("../middleware").auth;
+const { auth: authentication } = require("../middleware");
+const { checkValidations } = require("../middleware/errorHandling");
 
 //controller methods
 const {
@@ -13,7 +14,7 @@ const {
 
 router.use(authentication(false));
 
-router.use(query("q").isAlphanumeric());
+router.use(query("q").isAlphanumeric(), checkValidations);
 
 router.route("/usuario").get(getUsuario);
 

@@ -1,10 +1,9 @@
-const sequelize = require("../services/db");
+const sequelize = require("../db");
 const Gru = sequelize.models.Gru;
 const mime = require("mime");
 const fs = require("fs").promises;
 const path = require("path");
 const { getAnexoFileName } = require("../middleware");
-const { validationResult } = require("express-validator");
 
 function gruFileIsComprovanteOrGru(value) {
   const type = value;
@@ -25,17 +24,11 @@ function gruFileIsComprovanteOrGru(value) {
 
 module.exports = {
   get: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const idProjeto = req.params.id;
     const gru = await Gru.findAll({ where: { idProjeto: idProjeto } });
     res.json({ user: req.user, token: req.token, results: gru });
   },
   post: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const gru = req.body.gru;
     const result = await Gru.create(gru, {
       fields: ["idProjeto", "valorTotalCusteio", "valorTotalCapital"],
@@ -43,9 +36,6 @@ module.exports = {
     res.json({ user: req.user, token: req.token, results: [result] });
   },
   put: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const gru = req.body.gru;
     const result = await Gru.update(gru, {
       where: { id: gru.id },
@@ -55,9 +45,6 @@ module.exports = {
     res.json({ user: req.user, token: req.token, results: [result] });
   },
   getFile: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const idProjeto = req.params.id;
     const type = req.query.type;
 
@@ -75,22 +62,14 @@ module.exports = {
       try {
         const file = await fs.readFile("uploads/" + fileName);
 
-        res.send({
-          user: req.user,
-          token: req.token,
-          id: req.params.id,
-          file: file,
-          fileMime: mime.getType(fileName),
-        });
+        res.setHeader("content-type", mime.getType(fileName));
+        res.send(file);
       } catch (error) {
         res.status(500).send(error);
       }
     } else res.json({ user: req.user, token: req.token });
   },
   postFile: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const id = req.params.id;
     const file = req.file;
     const type = req.query.type;
@@ -136,9 +115,6 @@ module.exports = {
     }
   },
   deleteFile: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const id = req.params.id;
     const type = req.query.type;
 

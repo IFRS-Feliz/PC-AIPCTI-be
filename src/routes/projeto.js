@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { query, body, param } = require("express-validator");
+const { checkValidations } = require("../middleware/errorHandling");
 
 //controller methods
 const {
@@ -12,11 +13,10 @@ const {
   getSingle,
   getRelatorio,
 } = require("../controllers/ProjetoController");
-const Projeto = require("../services/db").models.Projeto;
+const Projeto = require("../db").models.Projeto;
 
 //setup authorization middleware
-const authorization = require("../middleware").auth;
-const paginatedResults = require("../middleware").paginatedResults;
+const { auth: authorization, paginatedResults } = require("../middleware");
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
 router
@@ -30,7 +30,7 @@ router
     get
   );
 
-router.route("/:id").get(param("id").isInt(), getSingle);
+router.route("/:id").get(param("id").isInt(), checkValidations, getSingle);
 
 //gru
 const {
@@ -47,45 +47,46 @@ router.use("/:id/gru", param("id").isInt());
 
 router
   .route("/:id/gru")
-  .get(getGru)
+  .get(checkValidations, getGru)
   .post(
     body("gru").isObject(),
     body("gru.valorTotalCusteio").isNumeric(),
     body("gru.valorTotalCapital").isNumeric(),
     body("gru.idProjeto").isInt(),
+    checkValidations,
     postGru
   )
   .put(
     body("gru").isObject(),
     body("gru.valorTotalCusteio").isNumeric(),
-    putGru,
     body("gru").isObject(),
     body("gru.valorTotalCapital").isNumeric(),
+    checkValidations,
     putGru
   );
 
-//  gru files
+//gru files
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 
+router.use(
+  "/:id/gru/file",
+  query("type").custom(gruFileIsComprovanteOrGru),
+  checkValidations
+);
+
+router.route("/:id/gru/file").get(getGruFile);
+
+router.route("/:id/gru/file").post(upload.single("file"), postGruFile);
+
+router.route("/:id/gru/file").delete(deleteGruFile);
+
+//relatorio
 router
-  .route("/:id/gru/file")
-  .get(query("type").custom(gruFileIsComprovanteOrGru), getGruFile);
+  .route("/:id/relatorio")
+  .get(param("id").isInt(), checkValidations, getRelatorio);
 
-router
-  .route("/:id/gru/file")
-  .post(
-    query("type").custom(gruFileIsComprovanteOrGru),
-    upload.single("file"),
-    postGruFile
-  );
-
-router
-  .route("/:id/gru/file")
-  .delete(query("type").custom(gruFileIsComprovanteOrGru), deleteGruFile);
-
-router.route("/:id/relatorio").get(param("id").isInt(), getRelatorio);
-
+//projeto
 router.use(authorization(true)); //é necessario ser admin para outros metodos
 
 router
@@ -99,6 +100,7 @@ router
     body("projetos.*.valorRecebidoCusteio").isNumeric(),
     body("projetos.*.valorRecebidoCapital").isNumeric(),
     body("projetos.*.idEdital").isNumeric(),
+    checkValidations,
     post
   )
   .put(
@@ -111,8 +113,14 @@ router
     body("projetos.*.valorRecebidoCapital").isNumeric(),
     body("projetos.*.idEdital").isNumeric(),
     body("projetos.*.cpfUsuario").isLength({ min: 11, max: 11 }),
+    checkValidations,
     put
   )
-  .delete(body("projetos").isArray(), body("projetos.*.id").isNumeric(), del);
+  .delete(
+    body("projetos").isArray(),
+    body("projetos.*.id").isNumeric(),
+    checkValidations,
+    del
+  );
 
 module.exports = router;

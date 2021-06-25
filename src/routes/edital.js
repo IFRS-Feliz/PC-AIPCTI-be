@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { body, query, param } = require("express-validator");
+const { checkValidations } = require("../middleware/errorHandling");
 
 //controller methods
 const {
@@ -11,11 +12,10 @@ const {
   del,
   getSingle,
 } = require("../controllers/EditalController");
-const Edital = require("../services/db").models.Edital;
+const Edital = require("../db").models.Edital;
 
 //setup authorization middleware
-const authorization = require("../middleware").auth;
-const paginatedResults = require("../middleware").paginatedResults;
+const { auth: authorization, paginatedResults } = require("../middleware");
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
 router
@@ -27,13 +27,13 @@ router
     get
   );
 
-router.route("/:id").get(param("id").isInt(), getSingle);
+router.route("/:id").get(param("id").isInt(), checkValidations, getSingle);
 
 router.use(authorization(true)); //é necessario ser admin para outros metodos
 
 router
   .route("/")
-  .delete(body("id").isInt(), del)
+  .delete(body("id").isInt(), checkValidations, del)
   .post(
     body("nome").exists(),
     body("dataInicio").isDate(),
@@ -41,6 +41,7 @@ router
     body("dataLimitePrestacao").isDate(),
     body("valorAIPCTI").isNumeric(),
     body("ano").isLength({ min: 4, max: 4 }).isInt(),
+    checkValidations,
     post
   )
   .put(
@@ -51,6 +52,7 @@ router
     body("dataLimitePrestacao").isDate(),
     body("valorAIPCTI").isNumeric(),
     body("ano").isLength({ min: 4, max: 4 }).isInt(),
+    checkValidations,
     put
   );
 

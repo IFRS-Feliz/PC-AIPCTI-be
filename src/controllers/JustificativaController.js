@@ -1,5 +1,4 @@
-const { validationResult } = require("express-validator");
-const sequelize = require("../services/db");
+const sequelize = require("../db");
 const Justificativa = sequelize.models.Justificativa;
 
 module.exports = {
@@ -15,9 +14,6 @@ module.exports = {
     });
   },
   getSingle: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
     const justificativa = await Justificativa.findByPk(req.params.id, {
       raw: true,
     });

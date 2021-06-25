@@ -6,6 +6,7 @@ const {
   paginatedResults,
   validatorsPaginatedResults,
 } = require("../middleware");
+const { checkValidations } = require("../middleware/errorHandling");
 
 //controller methods
 const {
@@ -25,7 +26,7 @@ const {
   postFile,
   deleteFile,
 } = require("../controllers/FileController");
-const Item = require("../services/db").models.Item;
+const Item = require("../db").models.Item;
 
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
@@ -33,13 +34,13 @@ router
   .route("/")
   .get(validatorsGet, validatorsPaginatedResults, paginatedResults(Item), get);
 
-router.route("/:id").get(validatorsGetSingle, getSingle);
+router.route("/:id").get(validatorsGetSingle, checkValidations, getSingle);
 
 router
   .route("/")
-  .post(validatorsPost, post)
-  .put(validatorsPut, put)
-  .delete(validatorsDel, del);
+  .post(validatorsPost, checkValidations, post)
+  .put(validatorsPut, checkValidations, put)
+  .delete(validatorsDel, checkValidations, del);
 
 //files
 const multer = require("multer");

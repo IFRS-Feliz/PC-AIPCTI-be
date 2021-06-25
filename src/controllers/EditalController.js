@@ -1,5 +1,4 @@
-const { validationResult } = require("express-validator");
-const Edital = require("../services/db").models.Edital;
+const Edital = require("../db").models.Edital;
 
 module.exports = {
   get: async (req, res) => {
@@ -14,10 +13,6 @@ module.exports = {
     });
   },
   getSingle: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const editais = await Edital.findByPk(req.params.id, { raw: true });
 
     return res.json({
@@ -27,10 +22,6 @@ module.exports = {
     });
   },
   post: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const results = await Edital.create({
       nome: req.body.nome,
       dataInicio: req.body.dataInicio,
@@ -47,10 +38,6 @@ module.exports = {
     });
   },
   put: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const results = await Edital.update(
       {
         nome: req.body.nome,
@@ -70,10 +57,6 @@ module.exports = {
     });
   },
   del: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const results = await Edital.destroy({ where: { id: req.body.id } });
 
     res.json({
