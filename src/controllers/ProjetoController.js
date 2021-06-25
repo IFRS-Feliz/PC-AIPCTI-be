@@ -129,8 +129,6 @@ module.exports = {
       where: { idProjeto: projeto[0].id },
     });
 
-    console.log(gru);
-
     const edital = await Edital.findAll({
       raw: true,
       where: { id: projeto[0].idEdital },
@@ -955,8 +953,37 @@ module.exports = {
       );
     }
 
+    //Gru arquivos
+    gru.forEach((value) => {
+      if (value.pathAnexoGruCusteio) {
+        let pathAnexoGruCusteio = `${process.cwd()}/uploads/${
+          value.pathAnexoGruCusteio
+        }`;
+        zip.addLocalFile(pathAnexoGruCusteio, "Relatorio/pdfs");
+      }
+      if (value.pathAnexoGruCapital) {
+        let pathAnexoGruCapital = `${process.cwd()}/uploads/${
+          value.pathAnexoGruCapital
+        }`;
+        zip.addLocalFile(pathAnexoGruCapital, "Relatorio/pdfs");
+      }
+      if (value.pathAnexoComprovanteCusteio) {
+        let pathAnexoComprovanteCusteio = `${process.cwd()}/uploads/${
+          value.pathAnexoComprovanteCusteio
+        }`;
+        zip.addLocalFile(pathAnexoComprovanteCusteio, "Relatorio/pdfs");
+      }
+      if (value.pathAnexoComprovanteCapital) {
+        let pathAnexoComprovanteCapital = `${process.cwd()}/uploads/${
+          value.pathAnexoComprovanteCapital
+        }`;
+        zip.addLocalFile(pathAnexoComprovanteCapital, "Relatorio/pdfs");
+      }
+    });
+
     let tituloGru = {
       text: "GRU - Guia de Recolhimento da União",
+      margin: [0, 0, 0, 10],
     };
 
     let tabelaGru = {
@@ -964,28 +991,146 @@ module.exports = {
         widths: [269.25, 269.25],
         body: [
           [
-            { text: "Custeio", alignment: "center" },
-            { text: "Capital", alignment: "center" },
+            {
+              text: "Custeio",
+              alignment: "center",
+              bold: true,
+              fontSize: 15,
+              margin: [0, 3],
+            },
+            {
+              text: "Capital",
+              alignment: "center",
+              bold: true,
+              fontSize: 15,
+              margin: [0, 3],
+            },
           ],
           [
-            { text: "Valor total: ", alignment: "left" },
-            { text: "Valor total: ", alignment: "left" },
+            {
+              text: [
+                { text: "Valor total: \n", alignment: "left", bold: true },
+                {
+                  text: `R$ ${projeto[0].valorRecebidoCusteio}`,
+                  style: "celulaTable",
+                },
+              ],
+            },
+            {
+              text: [
+                { text: "Valor total: \n", alignment: "left", bold: true },
+                {
+                  text: `R$ ${projeto[0].valorRecebidoCapital}`,
+                  style: "celulaTable",
+                },
+              ],
+            },
           ],
           [
-            { text: "Valor restante: ", alignment: "left" },
-            { text: "Valor restante: ", alignment: "left" },
+            {
+              text: [
+                { text: "Valor restante: \n", alignment: "left", bold: true },
+                {
+                  text: `R$ ${
+                    Number(projeto[0].valorRecebidoCusteio) -
+                    Number(gru[0].valorTotalCusteio)
+                  }`,
+                  style: "celulaTable",
+                },
+              ],
+            },
+            {
+              text: [
+                { text: "Valor restante: \n", alignment: "left", bold: true },
+                {
+                  text: `R$ ${
+                    Number(projeto[0].valorRecebidoCapital) -
+                    Number(gru[0].valorTotalCapital)
+                  }`,
+                  style: "celulaTable",
+                },
+              ],
+            },
           ],
           [
-            { text: "Valor devolvido: ", alignment: "left" },
-            { text: "Valor devolvido: ", alignment: "left" },
+            {
+              text: [
+                { text: "Valor devolvido: \n", alignment: "left", bold: true },
+                {
+                  text: `R$ ${gru[0].valorTotalCusteio}`,
+                  style: "celulaTable",
+                },
+              ],
+            },
+            {
+              text: [
+                { text: "Valor devolvido: \n", alignment: "left", bold: true },
+                {
+                  text: `R$ ${gru[0].valorTotalCapital}`,
+                  style: "celulaTable",
+                },
+              ],
+            },
           ],
           [
-            { text: "Anexo GRU: ", alignment: "left" },
-            { text: "Anexo GRU: ", alignment: "left" },
+            {
+              text: [
+                { text: "Anexo GRU: \n", alignment: "left", bold: true },
+                gru[0].pathAnexoGruCusteio
+                  ? {
+                      text: gru[0].pathAnexoGruCusteio,
+                      link: `pdfs/${gru[0].pathAnexoGruCusteio}`,
+                      style: ["link", "celulaTable"],
+                    }
+                  : { text: "Nenhum anexo", style: "celulaTable" },
+              ],
+            },
+            {
+              text: [
+                { text: "Anexo GRU: \n", alignment: "left", bold: true },
+                gru[0].pathAnexoGruCapital
+                  ? {
+                      text: gru[0].pathAnexoGruCapital,
+                      link: `pdfs/${gru[0].pathAnexoGruCapital}`,
+                      style: ["link", "celulaTable"],
+                    }
+                  : { text: "Nenhum anexo", style: "celulaTable" },
+              ],
+            },
           ],
           [
-            { text: "Anexo comprovante: ", alignment: "left" },
-            { text: "Anexo comprovante: ", alignment: "left" },
+            {
+              text: [
+                {
+                  text: "Anexo comprovante: \n",
+                  alignment: "left",
+                  bold: true,
+                },
+                gru[0].pathAnexoComprovanteCusteio
+                  ? {
+                      text: gru[0].pathAnexoComprovanteCusteio,
+                      link: `pdfs/${gru[0].pathAnexoComprovanteCusteio}`,
+                      style: ["link", "celulaTable"],
+                    }
+                  : { text: "Nenhum anexo", style: "celulaTable" },
+              ],
+            },
+            {
+              text: [
+                {
+                  text: "Anexo comprovante: \n",
+                  alignment: "left",
+                  bold: true,
+                },
+                gru[0].pathAnexoComprovanteCapital
+                  ? {
+                      text: gru[0].pathAnexoComprovanteCapital,
+                      link: `pdfs/${gru[0].pathAnexoComprovanteCapital}`,
+                      style: ["link", "celulaTable"],
+                    }
+                  : { text: "Nenhum anexo", style: "celulaTable" },
+              ],
+            },
           ],
         ],
       },
