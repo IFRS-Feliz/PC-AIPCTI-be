@@ -102,9 +102,6 @@ module.exports = {
     });
   },
   getSingle: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
     const item = await Item.findByPk(req.params.id, { raw: true });
 
     return res.json({
@@ -114,21 +111,11 @@ module.exports = {
     });
   },
   post: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      console.log(validationResult(req));
-      return res.sendStatus(400);
-    }
-
     const results = await Item.bulkCreate(req.body.itens, { raw: true });
 
     res.json({ user: req.user, token: req.token, results: results });
   },
   put: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      console.log(validationResult(req));
-      return res.sendStatus(400);
-    }
-
     let results;
     // caso seja para atualizar a posicao dos itens no relatorio, nao atualizar o resto
     if (req.query.posicoes) {
@@ -162,10 +149,6 @@ module.exports = {
     res.json({ user: req.user, token: req.token, results: results });
   },
   del: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const ids = req.body.itens.map((item) => item.id);
 
     const itens = await Item.findAll({

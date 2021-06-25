@@ -15,9 +15,6 @@ module.exports = {
     });
   },
   getSingle: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
     const justificativa = await Justificativa.findByPk(req.params.id, {
       raw: true,
     });

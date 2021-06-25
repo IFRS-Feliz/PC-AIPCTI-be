@@ -7,6 +7,8 @@ const {
   validatorsPaginatedResults,
 } = require("../middleware");
 
+const { checkValidations } = require("../errorHandling");
+
 const {
   get,
   getSingle,
@@ -37,13 +39,13 @@ router
     get
   );
 
-router.route("/:id").get(validatorsGetSingle, getSingle);
+router.route("/:id").get(validatorsGetSingle, checkValidations, getSingle);
 
 router
   .route("/")
-  .delete(validatorsDel, del)
-  .post(validatorsPost, post)
-  .put(validatorsPut, put);
+  .delete(validatorsDel, checkValidations, del)
+  .post(validatorsPost, checkValidations, post)
+  .put(validatorsPut, checkValidations, put);
 
 //file
 const multer = require("multer");

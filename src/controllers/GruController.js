@@ -25,17 +25,11 @@ function gruFileIsComprovanteOrGru(value) {
 
 module.exports = {
   get: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const idProjeto = req.params.id;
     const gru = await Gru.findAll({ where: { idProjeto: idProjeto } });
     res.json({ user: req.user, token: req.token, results: gru });
   },
   post: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const gru = req.body.gru;
     const result = await Gru.create(gru, {
       fields: ["idProjeto", "valorTotalCusteio", "valorTotalCapital"],
@@ -43,9 +37,6 @@ module.exports = {
     res.json({ user: req.user, token: req.token, results: [result] });
   },
   put: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const gru = req.body.gru;
     const result = await Gru.update(gru, {
       where: { id: gru.id },
@@ -55,9 +46,6 @@ module.exports = {
     res.json({ user: req.user, token: req.token, results: [result] });
   },
   getFile: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const idProjeto = req.params.id;
     const type = req.query.type;
 
@@ -88,9 +76,6 @@ module.exports = {
     } else res.json({ user: req.user, token: req.token });
   },
   postFile: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const id = req.params.id;
     const file = req.file;
     const type = req.query.type;
@@ -136,9 +121,6 @@ module.exports = {
     }
   },
   deleteFile: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.status(400).json();
-    }
     const id = req.params.id;
     const type = req.query.type;
 

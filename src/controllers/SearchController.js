@@ -7,10 +7,6 @@ const Projeto = sequelize.models.Projeto;
 
 module.exports = {
   getUsuario: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const q = req.query.q;
 
     //adicionar condicoes no or, dependendo se o q pode ser um numero
@@ -20,14 +16,13 @@ module.exports = {
       or[1] = { cpf: { [Op.like]: `%${q}%` } };
     }
 
-    const results = await User.findAll({ where: { [Op.or]: or } });
+    const results = await User.findAll({
+      where: { [Op.or]: or },
+      attributes: { exclude: ["senha"] },
+    });
     res.json({ results, user: req.user, token: req.token });
   },
   getEdital: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const q = req.query.q;
 
     const results = await Edital.findAll({
@@ -37,10 +32,6 @@ module.exports = {
     res.json({ results, user: req.user, token: req.token });
   },
   getProjeto: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const q = req.query.q;
 
     const results = await Projeto.findAll({

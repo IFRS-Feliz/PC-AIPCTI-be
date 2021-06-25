@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { body, query, param } = require("express-validator");
+const { checkValidations } = require("../errorHandling");
 
 //controller methods
 const {
@@ -27,13 +28,13 @@ router
     get
   );
 
-router.route("/:id").get(param("id").isInt(), getSingle);
+router.route("/:id").get(param("id").isInt(), checkValidations, getSingle);
 
 router.use(authorization(true)); //é necessario ser admin para outros metodos
 
 router
   .route("/")
-  .delete(body("id").isInt(), del)
+  .delete(body("id").isInt(), checkValidations, del)
   .post(
     body("nome").exists(),
     body("dataInicio").isDate(),
@@ -41,6 +42,7 @@ router
     body("dataLimitePrestacao").isDate(),
     body("valorAIPCTI").isNumeric(),
     body("ano").isLength({ min: 4, max: 4 }).isInt(),
+    checkValidations,
     post
   )
   .put(
@@ -51,6 +53,7 @@ router
     body("dataLimitePrestacao").isDate(),
     body("valorAIPCTI").isNumeric(),
     body("ano").isLength({ min: 4, max: 4 }).isInt(),
+    checkValidations,
     put
   );
 

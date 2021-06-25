@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { query, param, body } = require("express-validator");
+const { checkValidations } = require("../errorHandling");
 
 const authorization = require("../middleware").auth;
 const paginatedResults = require("../middleware").paginatedResults;
@@ -32,11 +33,11 @@ router
     paginatedResults(Justificativa),
     get
   )
-  .post(body("idItem").isInt(), post);
+  .post(body("idItem").isInt(), checkValidations, post);
 router
   .route("/:id")
-  .get(param("id").isInt(), getSingle)
-  .delete(param("id").isInt(), deleteSingle);
+  .get(param("id").isInt(), checkValidations, getSingle)
+  .delete(param("id").isInt(), checkValidations, deleteSingle);
 
 //file
 const multer = require("multer");

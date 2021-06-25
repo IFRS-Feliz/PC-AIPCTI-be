@@ -55,10 +55,6 @@ module.exports = {
     });
   },
   getSingle: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const projetos = await Projeto.findByPk(req.params.id, { raw: true });
 
     return res.json({
@@ -68,10 +64,6 @@ module.exports = {
     });
   },
   post: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const results = await Projeto.bulkCreate(req.body.projetos);
 
     res
@@ -79,10 +71,6 @@ module.exports = {
       .json({ user: req.user, token: req.token, results: results });
   },
   put: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const results = await Projeto.bulkCreate(req.body.projetos, {
       updateOnDuplicate: [
         "cpfUsuario",
@@ -99,10 +87,6 @@ module.exports = {
       .json({ user: req.user, token: req.token, results: results });
   },
   del: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const ids = req.body.projetos.map((projeto) => projeto.id);
 
     const results = await Projeto.destroy({ where: { id: ids } });
@@ -113,10 +97,6 @@ module.exports = {
   },
 
   getRelatorio: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const zip = new AdmZip();
 
     const projeto = await Projeto.findAll({

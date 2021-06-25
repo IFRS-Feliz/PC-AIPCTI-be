@@ -22,10 +22,6 @@ module.exports = {
     });
   },
   getSingle: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const usuarios = await User.findByPk(req.params.cpf, {
       raw: true,
       attributes: {
@@ -40,10 +36,6 @@ module.exports = {
     });
   },
   post: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const duplicates = await User.findAll({
       where: { [Op.or]: [{ cpf: req.body.cpf }, { email: req.body.email }] },
     });
@@ -52,7 +44,7 @@ module.exports = {
       return res.status(400).send("Usuario já existe.");
 
     //gerar uma senha aleatoria com 4 caracteres
-    const { randomPassword, hash } = generateRandomPasswordAndHash();
+    const { randomPassword, hash } = await generateRandomPasswordAndHash();
 
     const results = await User.create({
       cpf: req.body.cpf,
@@ -71,10 +63,6 @@ module.exports = {
     res.status(200).json({ user: req.user, token: req.token });
   },
   put: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const duplicates = await User.findAll({
       where: {
         [Op.and]: [
@@ -102,10 +90,6 @@ module.exports = {
       .json({ user: req.user, token: req.token, results: results });
   },
   del: async (req, res) => {
-    if (!validationResult(req).isEmpty()) {
-      return res.sendStatus(400);
-    }
-
     const results = await User.destroy({ where: { cpf: req.body.cpf } });
 
     if (!results) res.sendStatus(500);
