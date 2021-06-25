@@ -1,4 +1,4 @@
-const Edital = require("../services/db").models.Edital;
+const Edital = require("../db").models.Edital;
 
 module.exports = {
   get: async (req, res) => {

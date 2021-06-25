@@ -6,7 +6,7 @@ const {
   paginatedResults,
   validatorsPaginatedResults,
 } = require("../middleware");
-const { checkValidations } = require("../errorHandling");
+const { checkValidations } = require("../middleware/errorHandling");
 
 //controller methods
 const {
@@ -26,7 +26,7 @@ const {
   postFile,
   deleteFile,
 } = require("../controllers/FileController");
-const Item = require("../services/db").models.Item;
+const Item = require("../db").models.Item;
 
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 

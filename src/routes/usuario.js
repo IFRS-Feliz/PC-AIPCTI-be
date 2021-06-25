@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { body, query, param } = require("express-validator");
-const { checkValidations } = require("../errorHandling");
+const { checkValidations } = require("../middleware/errorHandling");
 
 //controller methods
 const {
@@ -13,11 +13,10 @@ const {
   getSingle,
   changePassword,
 } = require("../controllers/UserController");
-const User = require("../services/db").models.User;
+const User = require("../db").models.User;
 
 //setup authorization middleware
-const authorization = require("../middleware").auth;
-const paginatedResults = require("../middleware").paginatedResults;
+const { auth: authorization, paginatedResults } = require("../middleware");
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
 router

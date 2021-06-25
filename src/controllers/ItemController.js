@@ -1,11 +1,5 @@
-const {
-  query,
-  param,
-  body,
-  oneOf,
-  validationResult,
-} = require("express-validator");
-const sequelize = require("../services/db");
+const { query, param, body, oneOf } = require("express-validator");
+const sequelize = require("../db");
 const Item = sequelize.models.Item;
 const {
   numberSanitizer,

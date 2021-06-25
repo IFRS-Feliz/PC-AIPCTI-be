@@ -1,5 +1,4 @@
-const { validationResult } = require("express-validator");
-const sequelize = require("../services/db");
+const sequelize = require("../db");
 const Projeto = sequelize.models.Projeto;
 const Item = sequelize.models.Item;
 const Orcamento = sequelize.models.Orcamento;

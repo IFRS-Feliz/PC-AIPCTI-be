@@ -1,10 +1,9 @@
-const sequelize = require("../services/db");
+const sequelize = require("../db");
 const Gru = sequelize.models.Gru;
 const mime = require("mime");
 const fs = require("fs").promises;
 const path = require("path");
 const { getAnexoFileName } = require("../middleware");
-const { validationResult } = require("express-validator");
 
 function gruFileIsComprovanteOrGru(value) {
   const type = value;

@@ -2,10 +2,9 @@ const express = require("express");
 const router = express.Router();
 
 const { query, param, body } = require("express-validator");
-const { checkValidations } = require("../errorHandling");
+const { checkValidations } = require("../middleware/errorHandling");
 
-const authorization = require("../middleware").auth;
-const paginatedResults = require("../middleware").paginatedResults;
+const { auth: authorization, paginatedResults } = require("../middleware");
 
 router.use(authorization(false));
 
@@ -21,7 +20,7 @@ const {
   postFile,
   deleteFile,
 } = require("../controllers/FileController");
-const sequelize = require("../services/db");
+const sequelize = require("../db");
 const Justificativa = sequelize.models.Justificativa;
 
 router

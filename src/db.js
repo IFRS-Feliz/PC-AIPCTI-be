@@ -16,13 +16,13 @@ const sequelize = new Sequelize(
 
 // pegar as funcoes de definicao dos models
 const modelDefiners = [
-  require("../models/User"),
-  require("../models/Edital"),
-  require("../models/Projeto"),
-  require("../models/Item"),
-  require("../models/Orcamento"),
-  require("../models/Justificativa"),
-  require("../models/Gru"),
+  require("./models/User"),
+  require("./models/Edital"),
+  require("./models/Projeto"),
+  require("./models/Item"),
+  require("./models/Orcamento"),
+  require("./models/Justificativa"),
+  require("./models/Gru"),
 ];
 
 // definir cada model

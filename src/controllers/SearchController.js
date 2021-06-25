@@ -1,6 +1,5 @@
-const sequelize = require("../services/db");
+const sequelize = require("../db");
 const { Op } = require("sequelize");
-const { validationResult } = require("express-validator");
 const User = sequelize.models.User;
 const Edital = sequelize.models.Edital;
 const Projeto = sequelize.models.Projeto;

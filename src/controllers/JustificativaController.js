@@ -1,5 +1,4 @@
-const { validationResult } = require("express-validator");
-const sequelize = require("../services/db");
+const sequelize = require("../db");
 const Justificativa = sequelize.models.Justificativa;
 
 module.exports = {

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const { body, query, param } = require("express-validator");
-const { checkValidations } = require("../errorHandling");
+const { checkValidations } = require("../middleware/errorHandling");
 
 //controller methods
 const {
@@ -12,11 +12,10 @@ const {
   del,
   getSingle,
 } = require("../controllers/EditalController");
-const Edital = require("../services/db").models.Edital;
+const Edital = require("../db").models.Edital;
 
 //setup authorization middleware
-const authorization = require("../middleware").auth;
-const paginatedResults = require("../middleware").paginatedResults;
+const { auth: authorization, paginatedResults } = require("../middleware");
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
 router

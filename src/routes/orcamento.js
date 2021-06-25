@@ -7,7 +7,7 @@ const {
   validatorsPaginatedResults,
 } = require("../middleware");
 
-const { checkValidations } = require("../errorHandling");
+const { checkValidations } = require("../middleware/errorHandling");
 
 const {
   get,
@@ -26,7 +26,7 @@ const {
   postFile,
   deleteFile,
 } = require("../controllers/FileController");
-const Orcamento = require("../services/db").models.Orcamento;
+const Orcamento = require("../db").models.Orcamento;
 
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 

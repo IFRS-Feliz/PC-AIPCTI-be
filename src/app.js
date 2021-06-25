@@ -4,12 +4,12 @@ const cookieParser = require("cookie-parser");
 
 const express = require("express");
 require("express-async-errors");
-const sequelize = require("./services/db");
+const sequelize = require("./db");
 const app = express();
 const port = process.env.PORT || 5000;
 
-const routes = require("./routes/routes");
-const { errorHandler } = require("./errorHandling");
+const routes = require("./routes");
+const { errorHandler } = require("./middleware/errorHandling");
 
 //middleware setup
 app.use(

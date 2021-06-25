@@ -1,11 +1,7 @@
-const { validationResult } = require("express-validator");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const {
-  sendCreateUserMail,
-  sendPasswordResetMail,
-} = require("../services/mail");
-const sequelize = require("../services/db");
+const { sendCreateUserMail, sendPasswordResetMail } = require("../mail");
+const sequelize = require("../db");
 const User = sequelize.models.User;
 const { Op } = require("sequelize");
 
