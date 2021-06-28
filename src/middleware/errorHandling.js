@@ -17,6 +17,7 @@ class InternalServerError extends Error {
 }
 
 const errorHandler = (err, _req, res, _next) => {
+  console.log(err);
   res.status(err.status || 500).json({ error: err.name, message: err.message });
 };
 
