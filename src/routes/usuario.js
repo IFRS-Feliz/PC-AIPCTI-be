@@ -36,14 +36,12 @@ router
     getSingle
   );
 
-router
-  .route("/:cpf/senha")
-  .put(
-    param("cpf").isLength({ min: 11, max: 11 }).isInt(),
-    body("password").isString(),
-    checkValidations,
-    changePassword
-  );
+router.route("/:cpf/senha").put(
+  param("cpf").isLength({ min: 11, max: 11 }).isInt(),
+  body("password").isString().optional(), //nao necessaria caso admin esteja resetando
+  checkValidations,
+  changePassword
+);
 
 router.use(authorization(true)); //é necessario ser admin para outros metodos
 

@@ -58,8 +58,13 @@ router
   )
   .put(
     body("gru").isObject(),
+    body("gru.valorTotalCusteio").customSanitizer((value) =>
+      !value ? 0 : value
+    ),
+    body("gru.valorTotalCapital").customSanitizer((value) =>
+      !value ? 0 : value
+    ),
     body("gru.valorTotalCusteio").isNumeric(),
-    body("gru").isObject(),
     body("gru.valorTotalCapital").isNumeric(),
     checkValidations,
     putGru
