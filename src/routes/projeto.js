@@ -3,6 +3,7 @@ const router = express.Router();
 
 const { query, body, param } = require("express-validator");
 const { checkValidations } = require("../middleware/errorHandling");
+const { enforceOwnerByProjetoIdParam } = require("../middleware/enforceOwner");
 
 //controller methods
 const {
@@ -43,7 +44,7 @@ const {
   gruFileIsComprovanteOrGru,
 } = require("../controllers/GruController");
 
-router.use("/:id/gru", param("id").isInt());
+router.use("/:id/gru", param("id").isInt(), enforceOwnerByProjetoIdParam);
 
 router
   .route("/:id/gru")
@@ -89,7 +90,12 @@ router.route("/:id/gru/file").delete(deleteGruFile);
 //relatorio
 router
   .route("/:id/relatorio")
-  .get(param("id").isInt(), checkValidations, getRelatorio);
+  .get(
+    param("id").isInt(),
+    checkValidations,
+    enforceOwnerByProjetoIdParam,
+    getRelatorio
+  );
 
 //projeto
 router.use(authorization(true)); //é necessario ser admin para outros metodos

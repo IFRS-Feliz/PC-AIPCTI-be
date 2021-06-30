@@ -5,6 +5,10 @@ const { query, param, body } = require("express-validator");
 const { checkValidations } = require("../middleware/errorHandling");
 
 const { auth: authorization, paginatedResults } = require("../middleware");
+const {
+  enforceOwnerByItemIdBody,
+  enforceOwnerByOrcamentoOrJustificativaParam,
+} = require("../middleware/enforceOwner");
 
 router.use(authorization(false));
 
@@ -32,15 +36,30 @@ router
     paginatedResults(Justificativa),
     get
   )
-  .post(body("idItem").isInt(), checkValidations, post);
+  .post(
+    body("idItem").isInt(),
+    checkValidations,
+    enforceOwnerByItemIdBody,
+    post
+  );
 router
   .route("/:id")
   .get(param("id").isInt(), checkValidations, getSingle)
-  .delete(param("id").isInt(), checkValidations, deleteSingle);
+  .delete(
+    param("id").isInt(),
+    checkValidations,
+    enforceOwnerByOrcamentoOrJustificativaParam,
+    deleteSingle
+  );
 
 //file
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
+
+router.use(
+  "/:id/file",
+  enforceOwnerByOrcamentoOrJustificativaParam("justificativa")
+);
 
 router.route("/:id/file").get(getFile(Justificativa));
 

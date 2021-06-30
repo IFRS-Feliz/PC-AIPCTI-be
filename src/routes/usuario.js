@@ -17,6 +17,7 @@ const User = require("../db").models.User;
 
 //setup authorization middleware
 const { auth: authorization, paginatedResults } = require("../middleware");
+const { enforceOwnerByCpfParam } = require("../middleware/enforceOwner");
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
 router
@@ -39,6 +40,7 @@ router
 router.route("/:cpf/senha").put(
   param("cpf").isLength({ min: 11, max: 11 }).isInt(),
   body("password").isString().optional(), //nao necessaria caso admin esteja resetando
+  enforceOwnerByCpfParam, //é necessario ser o proprio usuario (ou admin)
   checkValidations,
   changePassword
 );

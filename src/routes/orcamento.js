@@ -8,6 +8,11 @@ const {
 } = require("../middleware");
 
 const { checkValidations } = require("../middleware/errorHandling");
+const {
+  enforceOwnerByItemIdBody,
+  enforceOwnerByOrcamentoIdBody,
+  enforceOwnerByOrcamentoOrJustificativaParam,
+} = require("../middleware/enforceOwner");
 
 const {
   get,
@@ -43,13 +48,18 @@ router.route("/:id").get(validatorsGetSingle, checkValidations, getSingle);
 
 router
   .route("/")
-  .delete(validatorsDel, checkValidations, del)
-  .post(validatorsPost, checkValidations, post)
-  .put(validatorsPut, checkValidations, put);
+  .delete(validatorsDel, checkValidations, enforceOwnerByOrcamentoIdBody, del)
+  .post(validatorsPost, checkValidations, enforceOwnerByItemIdBody, post)
+  .put(validatorsPut, checkValidations, enforceOwnerByItemIdBody, put);
 
 //file
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
+
+router.use(
+  "/:id/file",
+  enforceOwnerByOrcamentoOrJustificativaParam("orcamento")
+);
 
 router.route("/:id/file").get(getFile(Orcamento));
 

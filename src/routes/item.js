@@ -7,6 +7,11 @@ const {
   validatorsPaginatedResults,
 } = require("../middleware");
 const { checkValidations } = require("../middleware/errorHandling");
+const {
+  enforceOwnerByItemIdParam,
+  enforceOwnerByProjetoIdBody,
+  enforceOwnerByItemIdBody,
+} = require("../middleware/enforceOwner");
 
 //controller methods
 const {
@@ -38,13 +43,15 @@ router.route("/:id").get(validatorsGetSingle, checkValidations, getSingle);
 
 router
   .route("/")
-  .post(validatorsPost, checkValidations, post)
-  .put(validatorsPut, checkValidations, put)
-  .delete(validatorsDel, checkValidations, del);
+  .post(validatorsPost, checkValidations, enforceOwnerByProjetoIdBody, post)
+  .put(validatorsPut, checkValidations, enforceOwnerByProjetoIdBody, put)
+  .delete(validatorsDel, checkValidations, enforceOwnerByItemIdBody, del);
 
 //files
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
+
+router.use("/:id/file", enforceOwnerByItemIdParam);
 
 router.route("/:id/file").get(getFile(Item));
 
