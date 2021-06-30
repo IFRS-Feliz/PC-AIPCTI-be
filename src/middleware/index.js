@@ -9,40 +9,45 @@ function auth(adminOnly) {
     let token = authHeader && authHeader.split(" ")[1]; //token
 
     const refreshToken = req.cookies.refreshToken;
+    let user;
 
-    jwt.verify(token, process.env.SECRET, (error, user) => {
-      if (error) {
-        if (refreshToken) {
-          //futuramente verificar se refreshToken esta no db
-          jwt.verify(
-            refreshToken,
-            process.env.REFRESH_SECRET,
-            (errorR, userR) => {
-              if (errorR) return res.sendStatus(401);
+    try {
+      user = jwt.verify(token, process.env.SECRET);
+    } catch (error) {
+      //caso o token jwt nao seja invalido
 
-              const newUser = {
-                name: userR.name,
-                cpf: userR.cpf,
-                email: userR.email,
-                isAdmin: userR.isAdmin,
-              };
+      //caso nao haja um refresh token o usuario nao esta logado
+      if (!refreshToken) return res.sendStatus(401);
 
-              token = jwt.sign(newUser, process.env.SECRET, {
-                expiresIn: "100m",
-              });
+      //verificar o refresh token
+      try {
+        user = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
 
-              user = userR;
-            }
-          );
-        } else return res.sendStatus(401);
+        //criar uma nova token para o usuario caso o refresh token seja valido
+        const newUser = {
+          name: user.name,
+          cpf: user.cpf,
+          email: user.email,
+          isAdmin: user.isAdmin,
+        };
+
+        token = jwt.sign(newUser, process.env.SECRET, {
+          expiresIn: "100m",
+        });
+      } catch (error) {
+        //caso o refresh token seja invalido o usuario nao esta logado
+        return res.sendStatus(401);
       }
+    }
 
-      if (user.isAdmin === 0 && adminOnly) return res.sendStatus(403);
+    //caso a rota especifique que é adminOnly, verificar
+    if (user.isAdmin === 0 && adminOnly) return res.sendStatus(403);
 
-      req.token = token;
-      req.user = user;
-      next();
-    });
+    //setar variaveis para que os proximos middlewares possam usar
+    req.token = token;
+    req.user = user;
+
+    next();
   };
 }
 
