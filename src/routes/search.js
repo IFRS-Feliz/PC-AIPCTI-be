@@ -14,7 +14,14 @@ const {
 
 router.use(authentication(false));
 
-router.use(query("q").isAlphanumeric(), checkValidations);
+router.use(
+  query("q")
+    .isString()
+    .trim()
+    //remover caracteres nao alfanumericos
+    .customSanitizer((q) => q.replace(/[^0-9a-zA-Z ]/g, "")),
+  checkValidations
+);
 
 router.route("/usuario").get(getUsuario);
 

@@ -61,6 +61,9 @@ function paginatedResults(model, where = {}) {
     const page = Number(req.query.page);
     const offset = (page - 1) * limit;
 
+    const sortBy = req.query.sortBy; // id, nome, cpf etc..
+    const order = req.query.order; //ASC | DESC
+
     //adicionar wheres do Projeto se for o caso
     if (req.query.cpfUsuario) where.cpfUsuario = req.query.cpfUsuario;
     else delete where.cpfUsuario; //deletando porque, por algum motivo, haviam valores no where mesmo quando nenhum parametro é passado
@@ -84,6 +87,7 @@ function paginatedResults(model, where = {}) {
         attributes: {
           exclude: ["senha"],
         },
+        order: [[sortBy, order]],
       });
     } else {
       results = await model.findAll({
@@ -94,6 +98,7 @@ function paginatedResults(model, where = {}) {
         attributes: {
           exclude: ["senha"],
         },
+        order: [[sortBy, order]],
       });
     }
 

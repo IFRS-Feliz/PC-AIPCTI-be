@@ -20,16 +20,20 @@ const Projeto = require("../db").models.Projeto;
 const { auth: authorization, paginatedResults } = require("../middleware");
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
-router
-  .route("/")
-  .get(
-    query("cpfUsuario").isLength({ min: 11, max: 11 }).isInt().optional(),
-    query("idEdital").isInt().optional(),
-    query("limit").isInt().optional(),
-    query("page").isInt().optional(),
-    paginatedResults(Projeto),
-    get
-  );
+router.route("/").get(
+  query("cpfUsuario").isLength({ min: 11, max: 11 }).isInt().optional(),
+  query("idEdital").isInt().optional(),
+  query("limit").isInt().optional(),
+  query("page").isInt().optional(),
+  query("sortBy").customSanitizer((value) =>
+    ["id", "nome"].includes(value) ? value : "nome"
+  ),
+  query("order").customSanitizer((value) =>
+    ["ASC", "DESC"].includes(value) ? value : "ASC"
+  ),
+  paginatedResults(Projeto),
+  get
+);
 
 router.route("/:id").get(param("id").isInt(), checkValidations, getSingle);
 

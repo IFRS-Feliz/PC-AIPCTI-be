@@ -18,14 +18,18 @@ const Edital = require("../db").models.Edital;
 const { auth: authorization, paginatedResults } = require("../middleware");
 router.use(authorization(false)); //nao é necessario ser admin para realizar get
 
-router
-  .route("/")
-  .get(
-    query("limit").isInt().optional(),
-    query("page").isInt().optional(),
-    paginatedResults(Edital),
-    get
-  );
+router.route("/").get(
+  query("limit").isInt().optional(),
+  query("page").isInt().optional(),
+  query("sortBy").customSanitizer((value) =>
+    ["id", "nome", "dataInicio"].includes(value) ? value : "nome"
+  ),
+  query("order").customSanitizer((value) =>
+    ["ASC", "DESC"].includes(value) ? value : "ASC"
+  ),
+  paginatedResults(Edital),
+  get
+);
 
 router.route("/:id").get(param("id").isInt(), checkValidations, getSingle);
 

@@ -24,8 +24,15 @@ module.exports = {
   getEdital: async (req, res) => {
     const q = req.query.q;
 
+    //adicionar condicoes no or, dependendo se o q pode ser um numero
+    let or = [{ nome: { [Op.like]: `%${q}%` } }];
+
+    if (!isNaN(q)) {
+      or[1] = { ano: { [Op.like]: `%${q}%` } };
+    }
+
     const results = await Edital.findAll({
-      where: { nome: { [Op.like]: `%${q}%` } },
+      where: { [Op.or]: or },
     });
 
     res.json({ results, user: req.user, token: req.token });
