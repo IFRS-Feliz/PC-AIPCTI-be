@@ -125,6 +125,7 @@ module.exports = {
       return user.getDataValue("email");
     }
   },
+  generatePasswordHash,
 };
 
 async function generateRandomPasswordAndHash() {
