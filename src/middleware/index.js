@@ -87,7 +87,7 @@ function paginatedResults(model, where = {}) {
         attributes: {
           exclude: ["senha"],
         },
-        order: [[sortBy, order]],
+        order: order && sortBy ? [[sortBy, order]] : undefined,
       });
     } else {
       results = await model.findAll({
@@ -98,7 +98,7 @@ function paginatedResults(model, where = {}) {
         attributes: {
           exclude: ["senha"],
         },
-        order: [[sortBy, order]],
+        order: order && sortBy ? [[sortBy, order]] : undefined,
       });
     }
 
