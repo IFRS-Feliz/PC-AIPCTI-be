@@ -55,7 +55,7 @@ router
   .route("/")
   .delete(
     body("cpf").isLength({ min: 11, max: 11 }).isInt(),
-    checkValidations.apply,
+    checkValidations,
     del
   )
   .post(
